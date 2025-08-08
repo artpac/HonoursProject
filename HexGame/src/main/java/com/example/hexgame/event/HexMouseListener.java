@@ -1,3 +1,8 @@
+package main.java.com.example.hexgame.event;
+
+import main.java.com.example.hexgame.Main;
+import main.java.com.example.hexgame.view.HexGridDisplay;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Point;
@@ -6,7 +11,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import javax.swing.JLabel;
 
-class HexMouseListener implements MouseListener, MouseMotionListener {
+public class HexMouseListener implements MouseListener, MouseMotionListener {
     private final HexGridDisplay hexGrid;
     private int mouseX = 0;
     private int mouseY = 0;

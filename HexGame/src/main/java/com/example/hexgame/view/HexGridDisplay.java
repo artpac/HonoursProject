@@ -1,3 +1,8 @@
+package main.java.com.example.hexgame.view;
+
+import main.java.com.example.hexgame.event.HexMouseListener;
+
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.image.ImageObserver;
@@ -7,15 +12,15 @@ import java.util.List;
 import java.util.Objects;
 
 public class HexGridDisplay extends JPanel {
-
     static final int HEX_SIZE = 22; // Radius of each hex
     static final int WIDTH = 24;    // Number of columns
     static final int HEIGHT = 24;   // Number of rows
     static final double SQRT3 = Math.sqrt(3);
 
-    static class Hex {
-        int q, r;
-        Hex(int q, int r) { this.q = q; this.r = r; }
+    public static class Hex {
+        public int q;
+        public int r;
+        public Hex(int q, int r) { this.q = q; this.r = r; }
     }
 
     List<Hex> hexes;
@@ -26,8 +31,7 @@ public class HexGridDisplay extends JPanel {
         HexMouseListener mouseListener = new HexMouseListener(this);
         this.addMouseListener(mouseListener);
         this.addMouseMotionListener(mouseListener);
-        hexes = generateGrid(WIDTH, HEIGHT);
-        setPreferredSize(new Dimension(915, 780));
+        hexes = generateGrid();
     }
 
     // Add this method to set the hover hex
@@ -50,11 +54,11 @@ public class HexGridDisplay extends JPanel {
         return new Point((int)x, (int)y);
     }
 
-    private List<Hex> generateGrid(int width, int height) {
+    private List<Hex> generateGrid() {
         List<Hex> list = new ArrayList<>();
-        for (int r = 0; r < height; r++) {
+        for (int r = 0; r < HexGridDisplay.HEIGHT; r++) {
             int r_offset = r >> 1;
-            for (int q = -r_offset; q < width - r_offset; q++) {
+            for (int q = -r_offset; q < HexGridDisplay.WIDTH - r_offset; q++) {
                 list.add(new Hex(q, r));
             }
         }
@@ -95,17 +99,6 @@ public class HexGridDisplay extends JPanel {
                 // Add semi-transparent yellow highlight for hover
                 g2.setColor(new Color(255, 255, 0, 100));
                 g2.fillPolygon(hex);
-            }
-            if (h.q == 4 && h.r == 4) {
-                ImageIcon icon = new ImageIcon((URL) Objects.requireNonNull(this.getClass().getResource("/res/icon.png")));
-                Image img = icon.getImage();
-                if (img == null || icon.getIconWidth() == -1) {
-                    System.out.println("Image not loaded");
-                }
-
-                int imgX = p.x - icon.getIconWidth() / 2;
-                int imgY = p.y - icon.getIconHeight() / 2;
-                g2.drawImage(img, imgX, imgY, (ImageObserver)null);
             }
             
             // Draw the border
