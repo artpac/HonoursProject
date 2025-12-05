@@ -1,3 +1,5 @@
+package Game;
+
 import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.List;

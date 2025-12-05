@@ -1,5 +1,4 @@
-import java.awt.Color;
-import java.util.List;
+package Game;
 
 class PlacementValidator {
     private HiveBoard board;

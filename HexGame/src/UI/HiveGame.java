@@ -1,7 +1,11 @@
+package UI;
+
 import javax.swing.*;
 import java.awt.*;
+import Game.GameBoard;
 
 public class HiveGame extends JFrame {
+
     private GameBoard gameBoard;
 
     public HiveGame() {
@@ -22,7 +26,7 @@ public class HiveGame extends JFrame {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            new HiveGame().setVisible(true);
+            new MainScreen().setVisible(true);
         });
     }
 }

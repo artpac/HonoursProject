@@ -1,3 +1,5 @@
+package Game;
+
 enum PieceType {
     QUEEN(1, "Q"),
     ANT(3, "A"),

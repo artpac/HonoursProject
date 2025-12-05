@@ -1,10 +1,12 @@
+package Game;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 
-class GameBoard extends JPanel {
+public class GameBoard extends JPanel {
     private GameState gameState;
     private PlacementValidator placementValidator;
     private MovementValidator movementValidator;

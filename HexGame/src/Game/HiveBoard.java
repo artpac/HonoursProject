@@ -1,4 +1,5 @@
-import java.awt.Color;
+package Game;
+
 import java.util.*;
 
 class HiveBoard {
