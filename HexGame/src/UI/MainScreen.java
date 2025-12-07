@@ -1,10 +1,17 @@
 package UI;
 
+import Game.SaveGame;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 public class MainScreen extends JFrame {
@@ -66,7 +73,8 @@ public class MainScreen extends JFrame {
 
             pvp.addActionListener(f -> {
                 SwingUtilities.invokeLater(() -> {
-                    new HiveGame().setVisible(true);
+                    File saveGame = createSaveFile();
+                    new HiveGame(saveGame).setVisible(true);
                 });
             });
 
@@ -86,4 +94,23 @@ public class MainScreen extends JFrame {
 
         quit.addActionListener(e -> System.exit(0));
     }
+
+    public static File createSaveFile() {
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+        String formattedDateTime = LocalDateTime.now().format(dateFormat);
+        String saveGameFile = "/Users/artur/Documents/GitHub/HonoursProject/HexGame/SavedGames/" + formattedDateTime + ".csv";
+        File saveGame = new File(saveGameFile);
+        try {
+            if (saveGame.createNewFile()) {
+                String testText = "Piece,X,Y\n";
+                try (FileWriter fw = new FileWriter(saveGame)) {  // Use try-with-resources for auto-closing
+                    fw.write(testText);
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return saveGame;
+    }
+
 }

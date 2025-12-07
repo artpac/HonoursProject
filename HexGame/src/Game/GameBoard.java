@@ -3,11 +3,13 @@ package Game;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
 public class GameBoard extends JPanel {
     private GameState gameState;
+    private File saveFile;
     private PlacementValidator placementValidator;
     private MovementValidator movementValidator;
     private MoveCalculator moveCalculator;
@@ -24,7 +26,7 @@ public class GameBoard extends JPanel {
     private boolean isDragging;
 
 
-    public GameBoard() {
+    public GameBoard(File saveGame) {
         //Set Game Size and Colour
         setPreferredSize(new Dimension(1200, 700));
         setBackground(new Color(240, 230, 210));
@@ -44,6 +46,8 @@ public class GameBoard extends JPanel {
         isDragging = false;
         draggedPiece = null;
         dragPoint = null;
+
+        saveFile = saveGame;
 
         setupMouseListeners();
     }
@@ -124,6 +128,7 @@ public class GameBoard extends JPanel {
                 if (draggedPiece.getType() == PieceType.QUEEN) {
                     gameState.setQueenPlaced(draggedPiece.getColor());
                 }
+                saveGame(coord);
 
                 selectedPiece = null;
                 nextTurn();
@@ -139,10 +144,13 @@ public class GameBoard extends JPanel {
 
             if (validMoves.contains(coord)) {
                 gameState.getBoard().movePiece(selectedCoord, coord);
+                saveGame(coord);
                 selectedPiece = null;
                 selectedCoord = null;
                 validMoves.clear();
+
                 nextTurn();
+
             } else {
                 selectedPiece = null;
                 selectedCoord = null;
@@ -175,13 +183,20 @@ public class GameBoard extends JPanel {
         statusLabel.setText(status);
     }
 
+    public void saveGame(HexCoord coord) {
+        if (selectedPiece != null && coord != null) {
+            new SaveGame(saveFile, selectedPiece, coord);
+            System.out.println("Saved selected piece and coordinates.");
+        } else {
+            System.out.println("No selected piece or coordinate to save.");
+        }
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-
 
 
         renderer.render(g2, selectedPiece, selectedCoord, validMoves, draggedPiece, dragPoint);

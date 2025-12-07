@@ -1,0 +1,9 @@
+Piece,To X,To Y, From X, From Y
+WS,0,0
+BA,-1,0
+WG,1,0
+BQ,-2,0
+WA,2,0
+BA,-3,0
+WQ,0,1
+BA,3,0
