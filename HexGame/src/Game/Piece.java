@@ -2,7 +2,7 @@ package Game;
 
 import java.awt.Color;
 
-class Piece {
+public class Piece {
     private PieceType type;
     private Color color;
     private HexCoord position;
@@ -47,6 +47,6 @@ class Piece {
     @Override
     public String toString() {
         String colorPrefix = color.equals(Color.WHITE) ? "W" : "B";
-        return colorPrefix + type.getSymbol();
+        return colorPrefix + type.getSymbol() + instanceNumber;
     }
 }

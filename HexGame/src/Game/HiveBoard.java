@@ -2,7 +2,7 @@ package Game;
 
 import java.util.*;
 
-class HiveBoard {
+public class HiveBoard {
     private Map<HexCoord, List<Piece>> board;
 
     public HiveBoard() {

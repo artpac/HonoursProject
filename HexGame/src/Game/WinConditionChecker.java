@@ -1,6 +1,7 @@
 package Game;
 
 import java.awt.Color;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -11,7 +12,7 @@ class WinConditionChecker {
         this.board = board;
     }
 
-    public String checkWin() {
+    public String checkWin(File saveGame) {
         boolean whiteQueenSurrounded = false;
         boolean blackQueenSurrounded = false;
 
@@ -36,10 +37,13 @@ class WinConditionChecker {
         }
 
         if (whiteQueenSurrounded && blackQueenSurrounded) {
+            saveGame.renameTo(new File(saveGame.getPath().replace("WinnerColour", "Draw")));
             return "Draw! Both Queens surrounded!";
         } else if (whiteQueenSurrounded) {
+            saveGame.renameTo(new File(saveGame.getPath().replace("WinnerColour", "White")));
             return "Black wins! White Queen surrounded!";
         } else if (blackQueenSurrounded) {
+            saveGame.renameTo(new File(saveGame.getPath().replace("WinnerColour", "Black")));
             return "White wins! Black Queen surrounded!";
         }
 

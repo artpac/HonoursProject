@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-class HexCoord {
+public class HexCoord {
     private final int q;
     private final int r;
 

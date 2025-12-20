@@ -1,6 +1,6 @@
 package UI;
 
-import Game.SaveGame;
+import DataCollection.ReplayGames;
 
 import javax.swing.*;
 import java.awt.*;
@@ -37,10 +37,12 @@ public class MainScreen extends JFrame {
 
         //Initialising Buttons
         JButton startGame = new JButton("Start Game");
+        JButton replayGame = new JButton("Replay Game");
         JButton rules = new JButton("Rules");
         JButton quit = new JButton("Quit");
 
         buttonPanel.add(startGame);
+        buttonPanel.add(replayGame);
         buttonPanel.add(rules);
         buttonPanel.add(quit);
 
@@ -92,18 +94,29 @@ public class MainScreen extends JFrame {
                 }
             }});
 
+        replayGame.addActionListener(e -> {
+            File selectGame = new File("/Users/artur/Documents/GitHub/HonoursProject/HexGame/SavedGames/");
+            JFileChooser fileChooser = new JFileChooser(selectGame);
+            int returnVal = fileChooser.showOpenDialog(null);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+                new ReplayGames().replay(file);
+                dispose();
+            }
+        });
+
         quit.addActionListener(e -> System.exit(0));
     }
 
     public static File createSaveFile() {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
         String formattedDateTime = LocalDateTime.now().format(dateFormat);
-        String saveGameFile = "/Users/artur/Documents/GitHub/HonoursProject/HexGame/SavedGames/" + formattedDateTime + ".csv";
+        String saveGameFile = "/Users/artur/Documents/GitHub/HonoursProject/HexGame/SavedGames/" + formattedDateTime + " Winner - WinnerColour.csv";
         File saveGame = new File(saveGameFile);
         try {
             if (saveGame.createNewFile()) {
                 String testText = "Piece,X,Y\n";
-                try (FileWriter fw = new FileWriter(saveGame)) {  // Use try-with-resources for auto-closing
+                try (FileWriter fw = new FileWriter(saveGame)) {
                     fw.write(testText);
                 }
             }

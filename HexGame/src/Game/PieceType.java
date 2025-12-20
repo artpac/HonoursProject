@@ -1,6 +1,6 @@
 package Game;
 
-enum PieceType {
+public enum PieceType {
     QUEEN(1, "Q"),
     ANT(3, "A"),
     SPIDER(2, "S"),

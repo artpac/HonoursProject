@@ -3,7 +3,7 @@ package Game;
 import java.awt.Color;
 import java.util.*;
 
-class GameState {
+public class GameState {
     private HiveBoard board;
     private Map<Color, List<Piece>> reserves;
     private Color currentPlayer;

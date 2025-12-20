@@ -34,4 +34,8 @@ public class HiveGame extends JFrame {
             new MainScreen().setVisible(true);
         });
     }
+
+    public GameBoard getGameBoard() {
+        return gameBoard;
+    }
 }

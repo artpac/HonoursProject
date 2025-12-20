@@ -1,5 +1,9 @@
 package Game;
 
+import DataCollection.ReplayGames;
+import DataCollection.SaveGame;
+import UI.HiveGame;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -47,7 +51,11 @@ public class GameBoard extends JPanel {
         draggedPiece = null;
         dragPoint = null;
 
-        saveFile = saveGame;
+        this.saveFile = saveGame;
+
+        // Ensure UI updates after loading
+        revalidate();
+        repaint();
 
         setupMouseListeners();
     }
@@ -161,7 +169,7 @@ public class GameBoard extends JPanel {
     }
 
     private void nextTurn() {
-        String winMessage = winChecker.checkWin();
+        String winMessage = winChecker.checkWin(saveFile);
         if (winMessage != null) {
             statusLabel.setText(winMessage);
             return;
@@ -183,6 +191,21 @@ public class GameBoard extends JPanel {
         statusLabel.setText(status);
     }
 
+    public static void placeReplayPiece(HexCoord coord, Piece piece, GameState gameState) {
+        if (coord != null && piece != null && gameState != null) {
+            piece.setPosition(coord);
+            gameState.getBoard().placePiece(piece, coord);
+            
+            // Update queen placement status if necessary
+            if (piece.getType() == PieceType.QUEEN) {
+                gameState.setQueenPlaced(piece.getColor());
+            }
+            
+            // Update game state
+            gameState.nextPlayer();
+        }
+    }
+
     public void saveGame(HexCoord coord) {
         if (selectedPiece != null && coord != null) {
             new SaveGame(saveFile, selectedPiece, coord);
@@ -200,5 +223,9 @@ public class GameBoard extends JPanel {
 
 
         renderer.render(g2, selectedPiece, selectedCoord, validMoves, draggedPiece, dragPoint);
+    }
+
+    public GameState getGameState() {
+        return gameState;
     }
 }
