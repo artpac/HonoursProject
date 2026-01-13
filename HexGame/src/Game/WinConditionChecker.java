@@ -40,10 +40,10 @@ class WinConditionChecker {
             saveGame.renameTo(new File(saveGame.getPath().replace("WinnerColour", "Draw")));
             return "Draw! Both Queens surrounded!";
         } else if (whiteQueenSurrounded) {
-            saveGame.renameTo(new File(saveGame.getPath().replace("WinnerColour", "White")));
+            saveGame.renameTo(new File(saveGame.getPath().replace("WinnerColour", "Black")));
             return "Black wins! White Queen surrounded!";
         } else if (blackQueenSurrounded) {
-            saveGame.renameTo(new File(saveGame.getPath().replace("WinnerColour", "Black")));
+            saveGame.renameTo(new File(saveGame.getPath().replace("WinnerColour", "White")));
             return "White wins! Black Queen surrounded!";
         }
 

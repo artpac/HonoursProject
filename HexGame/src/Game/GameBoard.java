@@ -1,8 +1,8 @@
 package Game;
 
-import DataCollection.ReplayGames;
 import DataCollection.SaveGame;
 import UI.HiveGame;
+import UI.MainScreen;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +11,7 @@ import java.io.File;
 import java.util.*;
 import java.util.List;
 
-public class GameBoard extends JPanel {
+public class GameBoard extends JPanel implements KeyListener{
     private GameState gameState;
     private File saveFile;
     private PlacementValidator placementValidator;
@@ -29,11 +29,13 @@ public class GameBoard extends JPanel {
     private Point dragPoint;
     private boolean isDragging;
 
-
     public GameBoard(File saveGame) {
         //Set Game Size and Colour
         setPreferredSize(new Dimension(1200, 700));
         setBackground(new Color(240, 230, 210));
+
+        setFocusable(true);
+        addKeyListener(this);
 
         gameState = new GameState();
         placementValidator = new PlacementValidator(gameState.getBoard());
@@ -77,7 +79,6 @@ public class GameBoard extends JPanel {
             }
         });
     }
-
     public JLabel getStatusLabel() {
         return statusLabel;
     }
@@ -195,13 +196,11 @@ public class GameBoard extends JPanel {
         if (coord != null && piece != null && gameState != null) {
             piece.setPosition(coord);
             gameState.getBoard().placePiece(piece, coord);
-            
-            // Update queen placement status if necessary
+
             if (piece.getType() == PieceType.QUEEN) {
                 gameState.setQueenPlaced(piece.getColor());
             }
-            
-            // Update game state
+
             gameState.nextPlayer();
         }
     }
@@ -227,5 +226,18 @@ public class GameBoard extends JPanel {
 
     public GameState getGameState() {
         return gameState;
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
     }
 }

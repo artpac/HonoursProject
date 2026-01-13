@@ -23,12 +23,12 @@ public class ReplayGames {
             try {
                 // Give the UI time to initialize
                 Thread.sleep(500);
-                
+
                 try (BufferedReader br = new BufferedReader(new FileReader(saveFile))) {
                     String line;
                     // Skip header line
                     br.readLine();
-                    
+
                     while ((line = br.readLine()) != null) {
                         final String currentMove = line;
                         SwingUtilities.invokeLater(() -> processMove(currentMove));
@@ -41,7 +41,7 @@ public class ReplayGames {
                 handleReplayError("Replay interrupted: " + e.getMessage());
             }
         });
-        
+
         replayThread.start();
     }
 
@@ -59,26 +59,19 @@ public class ReplayGames {
             HexCoord coord = new HexCoord(x, y);
 
             System.out.println("Replaying move: " + piece + " at (" + x + ", " + y + ")");
-            
+
             GameBoard gameBoard = game.getGameBoard();
             GameState gameState = gameBoard.getGameState();
-            
+
             // Place piece using the static method
             GameBoard.placeReplayPiece(coord, piece, gameState);
-            
-            // Remove from reserves if necessary
-            List<Piece> reserve = gameState.getReserve(piece.getColor());
-            if (reserve != null) {
-                reserve.removeIf(p -> 
-                    p.getType() == piece.getType() && 
-                    p.getColor() == piece.getColor() && 
-                    p.getInstanceNumber() == piece.getInstanceNumber()
-                );
-            }
-            
+
+            gameState.removePieceFromReserve( piece);
+            gameState.nextPlayer();
+
             // Force a repaint of the game board
             gameBoard.repaint();
-            
+
         } catch (Exception e) {
             handleReplayError("Error processing move: " + e.getMessage());
         }
