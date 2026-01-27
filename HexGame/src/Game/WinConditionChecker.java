@@ -5,7 +5,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-class WinConditionChecker {
+public class WinConditionChecker {
     private HiveBoard board;
 
     public WinConditionChecker(HiveBoard board) {

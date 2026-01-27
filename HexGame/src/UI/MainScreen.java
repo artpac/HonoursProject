@@ -1,5 +1,6 @@
 package UI;
 
+import AI.HiveAI;
 import DataCollection.ReplayGames;
 
 import javax.swing.*;
@@ -38,11 +39,13 @@ public class MainScreen extends JFrame {
         //Initialising Buttons
         JButton startGame = new JButton("Start Game");
         JButton replayGame = new JButton("Replay Game");
+        JButton trainAI = new JButton("Train AI");
         JButton rules = new JButton("Rules");
         JButton quit = new JButton("Quit");
 
         buttonPanel.add(startGame);
         buttonPanel.add(replayGame);
+        buttonPanel.add(trainAI);
         buttonPanel.add(rules);
         buttonPanel.add(quit);
 
@@ -75,10 +78,41 @@ public class MainScreen extends JFrame {
 
             pvp.addActionListener(f -> {
                 SwingUtilities.invokeLater(() -> {
-                    File saveGame = createSaveFile();
+                    String gameType = "PvP";
+                    File saveGame = createSaveFile(gameType);
                     new HiveGame(saveGame).setVisible(true);
                 });
             });
+
+            pvc.addActionListener(f -> {
+                SwingUtilities.invokeLater(() -> {
+                    String gameType = "PvC";
+                    File saveGame = createSaveFile(gameType);
+                    HiveGame game = new HiveGame(saveGame);
+
+                    // Add AI opponent
+                    HiveAI aiOpponent = new HiveAI(true); // true = load trained weights
+                    game.getGameBoard().setAIOpponent(aiOpponent, Color.BLACK);
+
+                    game.setVisible(true);
+                });
+                dispose();
+            });
+
+        });
+
+        trainAI.addActionListener(e -> {
+            remove(title);
+            JLabel trainingTitle = new JLabel("Select Training Method", SwingConstants.CENTER);
+            trainingTitle.setFont(new Font("Arial", Font.BOLD, 22));
+            add(trainingTitle, BorderLayout.NORTH);
+
+            JPanel TrainingButtonPanel = new JPanel();
+            TrainingButtonPanel.setLayout(new GridLayout(1, 2, 10, 10));
+            TrainingButtonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+
+            JButton selfPlay = new JButton("Player Vs Player");
+            JButton pvc = new JButton("Player Vs Computer");
 
         });
 
@@ -108,10 +142,10 @@ public class MainScreen extends JFrame {
         quit.addActionListener(e -> System.exit(0));
     }
 
-    public static File createSaveFile() {
+    public static File createSaveFile(String gameType) {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
         String formattedDateTime = LocalDateTime.now().format(dateFormat);
-        String saveGameFile = "/Users/artur/Documents/GitHub/HonoursProject/HexGame/SavedGames/" + formattedDateTime + " Winner - WinnerColour.csv";
+        String saveGameFile = "/Users/artur/Documents/GitHub/HonoursProject/HexGame/SavedGames/" + formattedDateTime + " - "+ gameType + " - Winner - WinnerColour.csv";
         File saveGame = new File(saveGameFile);
         try {
             if (saveGame.createNewFile()) {

@@ -2,6 +2,7 @@ package Game;
 
 import java.awt.Color;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GameState {
     private HiveBoard board;
@@ -80,5 +81,65 @@ public class GameState {
 
     public void removePieceFromReserve(Piece piece) {
         reserves.get(currentPlayer).remove(piece);
+    }
+
+    public GameState clone() {
+        GameState cloned = new GameState();
+
+        // Deep clone board
+        HiveBoard clonedBoard = new HiveBoard();
+        for (Map.Entry<HexCoord, List<Piece>> entry : this.board.getBoard().entrySet()) {
+            HexCoord coord = new HexCoord(entry.getKey().getQ(), entry.getKey().getR());
+            List<Piece> clonedStack = new ArrayList<>();
+            for (Piece p : entry.getValue()) {
+                Piece clonedPiece = new Piece(p.getType(), p.getColor(), p.getInstanceNumber());
+                if (p.getPosition() != null) {
+                    clonedPiece.setPosition(new HexCoord(p.getPosition().getQ(), p.getPosition().getR()));
+                }
+                clonedStack.add(clonedPiece);
+            }
+            clonedBoard.getBoard().put(coord, clonedStack);
+        }
+
+        // Use reflection to set private fields
+        try {
+            java.lang.reflect.Field boardField = GameState.class.getDeclaredField("board");
+            boardField.setAccessible(true);
+            boardField.set(cloned, clonedBoard);
+
+            // Clone reserves
+            Map<Color, List<Piece>> clonedReserves = new HashMap<>();
+            for (Color color : new Color[]{Color.WHITE, Color.BLACK}) {
+                List<Piece> clonedReserve = new ArrayList<>();
+                for (Piece p : this.reserves.get(color)) {
+                    clonedReserve.add(new Piece(p.getType(), p.getColor(), p.getInstanceNumber()));
+                }
+                clonedReserves.put(color, clonedReserve);
+            }
+
+            java.lang.reflect.Field reservesField = GameState.class.getDeclaredField("reserves");
+            reservesField.setAccessible(true);
+            reservesField.set(cloned, clonedReserves);
+
+            // Copy other fields
+            java.lang.reflect.Field currentPlayerField = GameState.class.getDeclaredField("currentPlayer");
+            currentPlayerField.setAccessible(true);
+            currentPlayerField.set(cloned, this.currentPlayer);
+
+            java.lang.reflect.Field turnCountField = GameState.class.getDeclaredField("turnCount");
+            turnCountField.setAccessible(true);
+            turnCountField.set(cloned, this.turnCount);
+
+            java.lang.reflect.Field queenPlacedField = GameState.class.getDeclaredField("queenPlaced");
+            queenPlacedField.setAccessible(true);
+            Map<Color, Boolean> clonedQueenPlaced = new HashMap<>(this.queenPlaced);
+            queenPlacedField.set(cloned, clonedQueenPlaced);
+
+        } catch (Exception e) {
+            System.err.println("Error cloning GameState: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return cloned;
     }
 }

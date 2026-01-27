@@ -1,6 +1,6 @@
 package Game;
 
-class PlacementValidator {
+public class PlacementValidator {
     private HiveBoard board;
 
     public PlacementValidator(HiveBoard board) {
