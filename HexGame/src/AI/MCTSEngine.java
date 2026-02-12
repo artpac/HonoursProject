@@ -23,14 +23,28 @@ public class MCTSEngine {
     public AIMove search(GameState rootState, Color aiColor, int iterations) {
         MCTSNode root = new MCTSNode(null, null, rootState.clone());
 
-        for (int i = 0; i < iterations; i++) {
+        // Safety: limit iterations and add timeout
+        int maxIterations = Math.min(iterations, 100); // Reduced cap from 1000 to 100
+        long startTime = System.currentTimeMillis();
+        long timeoutMs = 5000; // Reduced from 10 seconds to 5 seconds
+
+        for (int i = 0; i < maxIterations; i++) {
+            // Timeout check every 10 iterations to reduce overhead
+            if (i % 10 == 0 && System.currentTimeMillis() - startTime > timeoutMs) {
+                System.out.println("MCTS timeout after " + i + " iterations");
+                break;
+            }
+
             MCTSNode node = root;
             GameState state = rootState.clone();
 
             // Selection: traverse tree using UCT
-            while (!node.isLeaf() && !isTerminal(state)) {
+            int selectionDepth = 0;
+            while (!node.isLeaf() && !isTerminal(state) && selectionDepth < 100) {
                 node = selectChild(node);
+                if (node == null || node.move == null) break;
                 node.move.execute(state);
+                selectionDepth++;
             }
 
             // Expansion: add children
@@ -38,7 +52,9 @@ public class MCTSEngine {
                 expand(node, state);
                 if (!node.children.isEmpty()) {
                     node = node.children.get(0);
-                    node.move.execute(state);
+                    if (node.move != null) {
+                        node.move.execute(state);
+                    }
                 }
             }
 
@@ -57,6 +73,8 @@ public class MCTSEngine {
      * Select child using UCT formula
      */
     private MCTSNode selectChild(MCTSNode node) {
+        if (node.children.isEmpty()) return null;
+
         MCTSNode best = null;
         double bestValue = Double.NEGATIVE_INFINITY;
 
@@ -87,11 +105,20 @@ public class MCTSEngine {
         Color currentPlayer = state.getCurrentPlayer();
         List<AIMove> moves = generateMoves(state, currentPlayer);
 
+        // Safety: Limit number of children
+        int maxChildren = 50;
+        moves = moves.size() > maxChildren ? moves.subList(0, maxChildren) : moves;
+
         // Get policy priors from neural network
         double[] priors = null;
         if (policyNet != null) {
-            double[] stateVec = encodeState(state, currentPlayer);
-            priors = policyNet.forward(stateVec);
+            try {
+                double[] stateVec = encodeState(state, currentPlayer);
+                priors = policyNet.forward(stateVec);
+            } catch (Exception e) {
+                // If neural network fails, continue without priors
+                priors = null;
+            }
         }
 
         for (int i = 0; i < moves.size(); i++) {

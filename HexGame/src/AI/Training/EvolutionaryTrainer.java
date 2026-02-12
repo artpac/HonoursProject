@@ -27,11 +27,18 @@ public class EvolutionaryTrainer {
      */
     private void initializePopulation() {
         System.out.println("Initializing population of " + populationSize + " agents...");
+        System.out.flush();
         for (int i = 0; i < populationSize; i++) {
+            System.out.print("  Creating agent " + (i + 1) + "/" + populationSize + "...");
+            System.out.flush();
             HiveAI ai = new HiveAI(false);
             AIAgent agent = new AIAgent(ai, i);
             population.add(agent);
+            System.out.println(" done");
+            System.out.flush();
         }
+        System.out.println("✓ Population initialized\n");
+        System.out.flush();
     }
 
     /**
@@ -85,7 +92,8 @@ public class EvolutionaryTrainer {
      * Evaluate fitness by playing tournament
      */
     private void evaluateFitness(int gamesPerAgent) {
-        System.out.println("Evaluating fitness...");
+        System.out.println("Evaluating fitness (" + gamesPerAgent + " games per agent)...");
+        System.out.flush();
 
         // Reset fitness
         for (AIAgent agent : population) {
@@ -97,11 +105,25 @@ public class EvolutionaryTrainer {
 
         // Round-robin tournament
         Random rand = new Random();
-        for (AIAgent agent : population) {
+        int totalGames = population.size() * gamesPerAgent;
+        int gamesPlayed = 0;
+
+        for (int agentIdx = 0; agentIdx < population.size(); agentIdx++) {
+            AIAgent agent = population.get(agentIdx);
+            System.out.println("  Agent " + (agentIdx + 1) + "/" + population.size());
+            System.out.flush();
+
             for (int i = 0; i < gamesPerAgent; i++) {
+                gamesPlayed++;
+                System.out.print("    Game " + (i + 1) + "/" + gamesPerAgent + "...");
+                System.out.flush();
+
                 // Select random opponent
                 AIAgent opponent = population.get(rand.nextInt(population.size()));
-                if (opponent == agent) continue;
+                if (opponent == agent && population.size() > 1) {
+                    // Pick different opponent
+                    opponent = population.get((agentIdx + 1) % population.size());
+                }
 
                 // Play game
                 GameResult result = playGame(agent, opponent);
@@ -109,6 +131,9 @@ public class EvolutionaryTrainer {
                 // Update fitness
                 updateFitness(agent, result, true);
                 updateFitness(opponent, result, false);
+
+                System.out.println(" " + result);
+                System.out.flush();
             }
         }
 
@@ -136,10 +161,24 @@ public class EvolutionaryTrainer {
             Color currentPlayer = state.getCurrentPlayer();
             AIAgent currentAgent = currentPlayer.equals(Color.WHITE) ? white : black;
 
-            AIMove move = currentAgent.ai.getBestMove(state, currentPlayer);
+            AIMove move = null;
+            try {
+                move = currentAgent.ai.getBestMove(state, currentPlayer);
+            } catch (Exception e) {
+                System.err.println("\nERROR getting move: " + e.getMessage());
+                e.printStackTrace();
+                return GameResult.DRAW; // Abort game
+            }
+
             if (move == null) break;
 
-            move.execute(state);
+            try {
+                move.execute(state);
+            } catch (Exception e) {
+                System.err.println("\nERROR executing move: " + e.getMessage());
+                e.printStackTrace();
+                return GameResult.DRAW; // Abort game
+            }
 
             String winMessage = checkWinCondition(state);
 

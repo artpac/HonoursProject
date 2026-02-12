@@ -41,7 +41,7 @@ public class HiveAI {
             return getBlendedMove(state, legalMoves, stateVector);
         } else {
             // End game: Pure MCTS for tactical precision
-            return mctsEngine.search(state, aiColor, 200);  // Reduced from 1000
+            return mctsEngine.search(state, aiColor, 50);  // Reduced from 200
         }
     }
 
@@ -157,8 +157,8 @@ public class HiveAI {
         // Get policy network probabilities
         double[] policyProbs = policyNetwork.forward(stateVector);
 
-        // Run limited MCTS (reduced iterations for speed)
-        AIMove mctsMove = mctsEngine.search(state, state.getCurrentPlayer(), 100);  // Reduced from 500
+        // Run very limited MCTS (reduced iterations for speed)
+        AIMove mctsMove = mctsEngine.search(state, state.getCurrentPlayer(), 30);  // Reduced from 100
 
         // Blend: 70% MCTS, 30% policy network
         if (Math.random() < 0.7 && mctsMove != null) {

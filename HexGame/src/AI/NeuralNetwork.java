@@ -157,13 +157,23 @@ public class NeuralNetwork implements Serializable {
      * Save weights to file
      */
     public void saveToFile() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(
-                new FileOutputStream("models/hive_network.dat"))) {
-            oos.writeObject(weights);
-            oos.writeObject(biases);
-            System.out.println("Network weights saved successfully");
+        try {
+            // Create models directory if it doesn't exist
+            java.io.File modelsDir = new java.io.File("models");
+            if (!modelsDir.exists()) {
+                modelsDir.mkdirs();
+                System.out.println("Created models/ directory");
+            }
+
+            try (ObjectOutputStream oos = new ObjectOutputStream(
+                    new FileOutputStream("models/hive_network.dat"))) {
+                oos.writeObject(weights);
+                oos.writeObject(biases);
+                System.out.println("Network weights saved successfully to models/hive_network.dat");
+            }
         } catch (IOException e) {
             System.err.println("Error saving network: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -175,15 +185,17 @@ public class NeuralNetwork implements Serializable {
                 new FileInputStream("models/hive_network.dat"))) {
             weights = (double[][][]) ois.readObject();
             biases = (double[][]) ois.readObject();
-            System.out.println("Network weights loaded successfully");
+            System.out.println("Network weights loaded successfully from models/hive_network.dat");
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Error loading network, using random weights: " + e.getMessage());
+            System.out.println("No existing weights found (this is normal for first run)");
+            System.out.println("Initializing with random weights...");
             initializeWeights();
         }
     }
 
     private boolean weightsExist() {
-        return new File("models/hive_network.dat").exists();
+        java.io.File file = new java.io.File("models/hive_network.dat");
+        return file.exists();
     }
 
     /**
