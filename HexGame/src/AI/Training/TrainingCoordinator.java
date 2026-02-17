@@ -2,6 +2,8 @@ package AI.Training;
 
 import AI.*;
 import Game.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Main coordinator for all AI training methods
@@ -10,6 +12,9 @@ public class TrainingCoordinator {
 
     public static void main(String[] args) {
         System.out.println("=== Hive AI Training System ===\n");
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+        String formattedDateTime = LocalDateTime.now().format(dateFormat);
+        System.out.println(formattedDateTime);
 
         String mode = args.length > 0 ? args[0] : "evolution";
 
@@ -37,7 +42,7 @@ public class TrainingCoordinator {
     private static void runSelfPlayTraining() {
         System.out.println("Starting self-play training...\n");
 
-        HiveAI agent = new HiveAI(false);
+        HiveAI agent = new HiveAI(true);
         SelfPlayTrainer trainer = new SelfPlayTrainer(agent);
 
         // Set number of games
@@ -55,10 +60,10 @@ public class TrainingCoordinator {
     private static void runEvolutionaryTraining() {
         System.out.println("Starting evolutionary training...\n");
 
-        EvolutionaryTrainer evolver = new EvolutionaryTrainer(50); // Population of 50
+        EvolutionaryTrainer evolver = new EvolutionaryTrainer(5); // Population of 50
 
         // Evolve for 100 generations
-        evolver.evolve(100, 5); // 5 games per evaluation
+        evolver.evolve(2, 5); // 5 games per evaluation
 
         // Export population statistics
         evolver.exportStats("evolution_stats.csv");

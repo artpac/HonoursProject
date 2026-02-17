@@ -197,6 +197,10 @@ public class SelfPlayTrainer {
      * Save training checkpoint
      */
     private void saveCheckpoint(int gameNumber) {
+        System.out.println("\n=== Saving Checkpoint ===");
+        System.out.println("After game: " + gameNumber);
+        System.out.println("Buffer size: " + replayBuffer.size());
+
         agent.policyNetwork.saveToFile();
         agent.valueNetwork.saveToFile();
 
@@ -207,7 +211,8 @@ public class SelfPlayTrainer {
             System.err.println("Error saving checkpoint log: " + e.getMessage());
         }
 
-        System.out.println("Checkpoint saved at game " + gameNumber);
+        System.out.println("✓ Checkpoint saved to models/");
+        System.out.println("========================\n");
     }
 
     /**

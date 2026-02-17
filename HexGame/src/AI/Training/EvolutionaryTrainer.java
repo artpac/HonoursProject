@@ -286,9 +286,18 @@ public class EvolutionaryTrainer {
      */
     private void saveBestAgent(int generation) {
         AIAgent best = population.get(0);
+
+        System.out.println("\n=== Saving Best Agent ===");
+        System.out.println("Generation: " + generation);
+        System.out.println("Fitness: " + String.format("%.3f", best.fitness));
+        System.out.println("Record: " + best.wins + "W " + best.losses + "L " + best.draws + "D");
+
+        // Save both networks
         best.ai.policyNetwork.saveToFile();
         best.ai.valueNetwork.saveToFile();
-        System.out.println("Best agent saved at generation " + generation);
+
+        System.out.println("✓ Best agent saved to models/");
+        System.out.println("================================\n");
     }
 
     /**
