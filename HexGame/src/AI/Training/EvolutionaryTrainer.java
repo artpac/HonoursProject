@@ -15,10 +15,16 @@ public class EvolutionaryTrainer {
     private double mutationRate = 0.1;
     private double mutationStrength = 0.05;
     private int eliteCount = 5;
+    private boolean usePretrained = false;  // New flag
 
     public EvolutionaryTrainer(int populationSize) {
+        this(populationSize, false);
+    }
+
+    public EvolutionaryTrainer(int populationSize, boolean loadPretrained) {
         this.populationSize = populationSize;
         this.population = new ArrayList<>();
+        this.usePretrained = loadPretrained;
         initializePopulation();
     }
 
@@ -28,13 +34,42 @@ public class EvolutionaryTrainer {
     private void initializePopulation() {
         System.out.println("Initializing population of " + populationSize + " agents...");
         System.out.flush();
+
+        // If using pretrained, load base model
+        HiveAI baseAI = null;
+        if (usePretrained) {
+            System.out.println("Loading pretrained model as base...");
+            System.out.flush();
+            baseAI = new HiveAI(true);  // Load pretrained weights
+        }
+
         for (int i = 0; i < populationSize; i++) {
             System.out.print("  Creating agent " + (i + 1) + "/" + populationSize + "...");
             System.out.flush();
-            HiveAI ai = new HiveAI(false);
+
+            HiveAI ai;
+            if (usePretrained && baseAI != null) {
+                // Clone pretrained model
+                ai = new HiveAI(false);
+                ai.policyNetwork = baseAI.policyNetwork.clone();
+                ai.valueNetwork = baseAI.valueNetwork.clone();
+
+                // Add mutation for diversity (except first agent - keep it pure)
+                if (i > 0) {
+                    ai.policyNetwork.mutate(0.05, 0.02);  // 5% mutation, small strength
+                    ai.valueNetwork.mutate(0.05, 0.02);
+                    System.out.println(" done (mutated from pretrained)");
+                } else {
+                    System.out.println(" done (pure pretrained)");
+                }
+            } else {
+                // Random initialization
+                ai = new HiveAI(false);
+                System.out.println(" done (random)");
+            }
+
             AIAgent agent = new AIAgent(ai, i);
             population.add(agent);
-            System.out.println(" done");
             System.out.flush();
         }
         System.out.println("✓ Population initialized\n");
@@ -59,33 +94,48 @@ public class EvolutionaryTrainer {
             // Print statistics
             printGenerationStats(gen);
 
-            // Create next generation
-            List<AIAgent> nextGen = new ArrayList<>();
-
-            // Elitism: keep best agents
-            for (int i = 0; i < eliteCount && i < population.size(); i++) {
-                nextGen.add(population.get(i).clone());
-            }
-
-            // Breed rest of population
-            while (nextGen.size() < populationSize) {
-                AIAgent parent1 = selectParent();
-                AIAgent parent2 = selectParent();
-                AIAgent child = crossover(parent1, parent2);
-                child.mutate(mutationRate, mutationStrength);
-                nextGen.add(child);
-            }
-
-            population = nextGen;
-
-            // Save best agent
+            // Save checkpoint every 10 generations
             if ((gen + 1) % 10 == 0) {
                 saveBestAgent(gen + 1);
+            }
+
+            // Don't create new generation on last iteration
+            if (gen < generations - 1) {
+                // Create next generation
+                List<AIAgent> nextGen = new ArrayList<>();
+
+                // Elitism: keep best agents
+                for (int i = 0; i < eliteCount && i < population.size(); i++) {
+                    nextGen.add(population.get(i).clone());
+                    System.out.println("  Elite " + (i+1) + " preserved (fitness: " +
+                            String.format("%.3f", population.get(i).fitness) + ")");
+                }
+
+                // Breed rest of population
+                while (nextGen.size() < populationSize) {
+                    AIAgent parent1 = selectParent();
+                    AIAgent parent2 = selectParent();
+                    AIAgent child = crossover(parent1, parent2);
+                    child.mutate(mutationRate, mutationStrength);
+                    nextGen.add(child);
+                }
+
+                population = nextGen;
             }
         }
 
         System.out.println("\nEvolution complete!");
+
+        // Final evaluation to get accurate stats
+        System.out.println("\nFinal evaluation...");
+        evaluateFitness(gamesPerEval);
+        population.sort((a, b) -> Double.compare(b.fitness, a.fitness));
+
+        // Save final best agent
         saveBestAgent(generations);
+
+        // Export final statistics
+        exportStats("evolution_stats.csv");
     }
 
     /**
@@ -143,11 +193,20 @@ public class EvolutionaryTrainer {
                 .max()
                 .orElse(1.0);
 
-        if (maxFitness > 0) {
+        if (maxFitness > 0.0) {
             for (AIAgent agent : population) {
                 agent.fitness /= maxFitness;
             }
         }
+
+        // Print summary
+        int totalWins = population.stream().mapToInt(a -> a.wins).sum();
+        int totalLosses = population.stream().mapToInt(a -> a.losses).sum();
+        int totalDraws = population.stream().mapToInt(a -> a.draws).sum();
+        System.out.println("\nEvaluation complete:");
+        System.out.println("  Total games: " + (totalWins + totalLosses + totalDraws));
+        System.out.println("  Wins: " + totalWins + ", Losses: " + totalLosses + ", Draws: " + totalDraws);
+        System.out.flush();
     }
 
     /**
@@ -297,6 +356,7 @@ public class EvolutionaryTrainer {
         best.ai.valueNetwork.saveToFile();
 
         System.out.println("✓ Best agent saved to models/");
+        System.out.println("You can now use: HiveAI ai = new HiveAI(true);");
         System.out.println("================================\n");
     }
 
@@ -313,8 +373,12 @@ public class EvolutionaryTrainer {
     public void exportStats(String filename) {
         try (java.io.PrintWriter writer = new java.io.PrintWriter(filename)) {
             writer.println("AgentID,Fitness,Wins,Losses,Draws");
+
+            System.out.println("\n=== Exporting Stats to " + filename + " ===");
             for (AIAgent agent : population) {
                 writer.printf("%d,%.3f,%d,%d,%d\n",
+                        agent.id, agent.fitness, agent.wins, agent.losses, agent.draws);
+                System.out.printf("  Agent %d: Fitness=%.3f, W=%d, L=%d, D=%d\n",
                         agent.id, agent.fitness, agent.wins, agent.losses, agent.draws);
             }
             System.out.println("Population stats exported to " + filename);
