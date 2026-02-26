@@ -24,14 +24,14 @@ public class MCTSEngine {
         MCTSNode root = new MCTSNode(null, null, rootState.clone());
 
         // Safety: limit iterations and add timeout
-        int maxIterations = Math.min(iterations, 100); // Reduced cap from 1000 to 100
+        int maxIterations = Math.min(iterations, 50); // Reduced cap from 100 to 50 for training
         long startTime = System.currentTimeMillis();
-        long timeoutMs = 5000; // Reduced from 10 seconds to 5 seconds
+        long timeoutMs = 2000; // Reduced from 5 seconds to 2 seconds
 
         for (int i = 0; i < maxIterations; i++) {
             // Timeout check every 10 iterations to reduce overhead
             if (i % 10 == 0 && System.currentTimeMillis() - startTime > timeoutMs) {
-                System.out.println("MCTS timeout after " + i + " iterations");
+                // Don't print timeout during training to reduce console spam
                 break;
             }
 

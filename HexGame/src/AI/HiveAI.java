@@ -158,10 +158,10 @@ public class HiveAI {
         double[] policyProbs = policyNetwork.forward(stateVector);
 
         // Run very limited MCTS (reduced iterations for speed)
-        AIMove mctsMove = mctsEngine.search(state, state.getCurrentPlayer(), 30);  // Reduced from 100
+        AIMove mctsMove = mctsEngine.search(state, state.getCurrentPlayer(), 10);  // Reduced from 30
 
-        // Blend: 70% MCTS, 30% policy network
-        if (Math.random() < 0.7 && mctsMove != null) {
+        // Blend: 30% MCTS, 70% policy network (reversed for speed)
+        if (Math.random() < 0.3 && mctsMove != null) {
             return mctsMove;
         } else {
             return selectMoveFromPolicy(moves, policyProbs);

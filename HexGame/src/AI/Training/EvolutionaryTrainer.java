@@ -214,7 +214,7 @@ public class EvolutionaryTrainer {
      */
     private GameResult playGame(AIAgent white, AIAgent black) {
         GameState state = new GameState();
-        int maxMoves = 100;
+        int maxMoves = 30;  // Reduced from 100 - most games end by turn 30 anyway
 
         for (int turn = 0; turn < maxMoves; turn++) {
             Color currentPlayer = state.getCurrentPlayer();
