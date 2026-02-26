@@ -66,7 +66,9 @@ public class TrainingCoordinator {
         evolver.evolve(2, 5); // 5 games per evaluation
 
         // Export population statistics
-        evolver.exportStats("evolution_stats.csv");
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH.mm");
+        String formattedDateTime = LocalDateTime.now().format(dateFormat);
+        evolver.exportStats("evolution_stats" + formattedDateTime + ".csv");
 
         System.out.println("\nEvolutionary training complete!");
     }
