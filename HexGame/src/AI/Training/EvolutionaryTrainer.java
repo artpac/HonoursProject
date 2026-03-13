@@ -125,17 +125,17 @@ public class EvolutionaryTrainer {
         }
 
         System.out.println("\nEvolution complete!");
+//
+//        // Final evaluation to get accurate stats
+//        System.out.println("\nFinal evaluation...");
+//        evaluateFitness(gamesPerEval);
+//        population.sort((a, b) -> Double.compare(b.fitness, a.fitness));
+//
+//        // Save final best agent
+//        saveBestAgent(generations);
 
-        // Final evaluation to get accurate stats
-        System.out.println("\nFinal evaluation...");
-        evaluateFitness(gamesPerEval);
-        population.sort((a, b) -> Double.compare(b.fitness, a.fitness));
-
-        // Save final best agent
-        saveBestAgent(generations);
-
-        // Export final statistics
-        exportStats("evolution_stats.csv");
+//        // Export final statistics
+//        exportStats("evolution_stats.csv");
     }
 
     /**

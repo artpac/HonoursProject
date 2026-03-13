@@ -12,18 +12,18 @@ public class TrainingCoordinator {
 
     public static void main(String[] args) {
         System.out.println("=== Hive AI Training System ===\n");
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
-        String formattedDateTime = LocalDateTime.now().format(dateFormat);
-        System.out.println(formattedDateTime);
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH.mm");
+        String startTime = LocalDateTime.now().format(dateFormat);
+        System.out.println(startTime);
 
-        String mode = args.length > 0 ? args[0] : "evolution";
+        String mode = args.length > 0 ? args[0] : "selfplay";
 
         switch (mode.toLowerCase()) {
             case "selfplay":
-                runSelfPlayTraining();
+                runSelfPlayTraining(startTime);
                 break;
             case "evolution":
-                runEvolutionaryTraining();
+                runEvolutionaryTraining(startTime);
                 break;
             case "combined":
                 runCombinedTraining();
@@ -39,17 +39,17 @@ public class TrainingCoordinator {
     /**
      * Self-play reinforcement learning
      */
-    private static void runSelfPlayTraining() {
+    private static void runSelfPlayTraining(String startTime) {
         System.out.println("Starting self-play training...\n");
 
         HiveAI agent = new HiveAI(true);
         SelfPlayTrainer trainer = new SelfPlayTrainer(agent);
 
         // Set number of games
-        trainer.train(1, true);
+        trainer.train(10, true);
 
         // Export training data
-        trainer.exportTrainingData("training_data.csv");
+        trainer.exportTrainingData("training_data" + startTime + ".csv");
 
         System.out.println("\nSelf-play training complete!");
     }
@@ -57,18 +57,18 @@ public class TrainingCoordinator {
     /**
      * Evolutionary algorithm training
      */
-    private static void runEvolutionaryTraining() {
+    private static void runEvolutionaryTraining(String startTime) {
         System.out.println("Starting evolutionary training...\n");
 
         EvolutionaryTrainer evolver = new EvolutionaryTrainer(5); // Population of 50
 
         // Evolve for 100 generations
-        evolver.evolve(2, 5); // 5 games per evaluation
+        evolver.evolve(5, 20); // 5 games per evaluation
 
         // Export population statistics
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH.mm");
-        String formattedDateTime = LocalDateTime.now().format(dateFormat);
-        evolver.exportStats("evolution_stats" + formattedDateTime + ".csv");
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("HH.mm");
+        String endTime = LocalDateTime.now().format(dateFormat);
+        evolver.exportStats("evolution_stats " + startTime + "_" + endTime + ".csv");
 
         System.out.println("\nEvolutionary training complete!");
     }

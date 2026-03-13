@@ -145,7 +145,7 @@ public class MainScreen extends JFrame {
     public static File createSaveFile(String gameType) {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
         String formattedDateTime = LocalDateTime.now().format(dateFormat);
-        String saveGameFile = "/Users/artur/Documents/GitHub/HonoursProject/HexGame/SavedGames/" + formattedDateTime + " - "+ gameType + " - Winner - WinnerColour.csv";
+        String saveGameFile = "/Users/artur/Documents/GitHub/HonoursProject/SavedGames/" + formattedDateTime + " - "+ gameType + " - Winner - WinnerColour.csv";
         File saveGame = new File(saveGameFile);
         try {
             if (saveGame.createNewFile()) {
