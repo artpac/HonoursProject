@@ -15,7 +15,8 @@ public class HiveAI {
 
     public HiveAI(boolean loadWeights) {
         this.policyNetwork = new NeuralNetwork(loadWeights);
-        this.valueNetwork = new NeuralNetwork(loadWeights);
+        this.valueNetwork = new NeuralNetwork(loadWeights,
+                new int[]{1220, 512, 256, 128, 1}, "models/hive_value_network.dat");
         this.mctsEngine = new MCTSEngine(policyNetwork, valueNetwork);
     }
 

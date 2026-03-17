@@ -13,10 +13,15 @@ public class NeuralNetwork implements Serializable {
     private double[][][] weights; // [layer][neuron][input]
     private double[][] biases;    // [layer][neuron]
     private double learningRate;
+    private String saveFilePath;
 
     public NeuralNetwork(boolean loadWeights) {
-        // Architecture: 1220 -> 512 -> 256 -> 128 -> output
-        this.layerSizes = new int[]{1220, 512, 256, 128, 64};
+        this(loadWeights, new int[]{1220, 512, 256, 128, 64}, "models/hive_network.dat");
+    }
+
+    public NeuralNetwork(boolean loadWeights, int[] layerSizes, String saveFilePath) {
+        this.layerSizes = layerSizes;
+        this.saveFilePath = saveFilePath;
         this.learningRate = 0.001;
 
         if (loadWeights && weightsExist()) {
@@ -166,10 +171,10 @@ public class NeuralNetwork implements Serializable {
             }
 
             try (ObjectOutputStream oos = new ObjectOutputStream(
-                    new FileOutputStream("models/hive_network.dat"))) {
+                    new FileOutputStream(saveFilePath))) {
                 oos.writeObject(weights);
                 oos.writeObject(biases);
-                System.out.println("Network weights saved successfully to models/hive_network.dat");
+                System.out.println("Network weights saved successfully to " + saveFilePath);
             }
         } catch (IOException e) {
             System.err.println("Error saving network: " + e.getMessage());
@@ -182,10 +187,10 @@ public class NeuralNetwork implements Serializable {
      */
     private void loadFromFile() {
         try (ObjectInputStream ois = new ObjectInputStream(
-                new FileInputStream("models/hive_network.dat"))) {
+                new FileInputStream(saveFilePath))) {
             weights = (double[][][]) ois.readObject();
             biases = (double[][]) ois.readObject();
-            System.out.println("Network weights loaded successfully from models/hive_network.dat");
+            System.out.println("Network weights loaded successfully from " + saveFilePath);
         } catch (IOException | ClassNotFoundException e) {
             System.out.println("No existing weights found (this is normal for first run)");
             System.out.println("Initializing with random weights...");
@@ -194,7 +199,7 @@ public class NeuralNetwork implements Serializable {
     }
 
     private boolean weightsExist() {
-        java.io.File file = new java.io.File("models/hive_network.dat");
+        java.io.File file = new java.io.File(saveFilePath);
         return file.exists();
     }
 
@@ -202,7 +207,7 @@ public class NeuralNetwork implements Serializable {
      * Clone this network (for evolutionary algorithms)
      */
     public NeuralNetwork clone() {
-        NeuralNetwork clone = new NeuralNetwork(false);
+        NeuralNetwork clone = new NeuralNetwork(false, layerSizes, saveFilePath);
 
         // Deep copy weights and biases
         for (int l = 0; l < weights.length; l++) {
