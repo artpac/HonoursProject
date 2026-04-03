@@ -142,9 +142,14 @@ public class SelfPlayTrainer {
             } else {
                 exp.reward = isWinner ? finalReward : (1.0 - finalReward);
             }
-
             // Apply temporal discount
             finalReward *= discountFactor;
+        }
+        if (result == GameResult.DRAW && history.size() >= 95) {
+            // Game timed out without winner - bad for both
+            for (GameExperience exp : history) {
+                exp.reward *= 0.5;  // Halve all rewards
+            }
         }
     }
 

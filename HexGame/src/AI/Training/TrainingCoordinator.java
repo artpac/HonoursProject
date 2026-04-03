@@ -48,8 +48,11 @@ public class TrainingCoordinator {
         // Set number of games
         trainer.train(10, true);
 
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("HH.mm");
+        String endTime = LocalDateTime.now().format(dateFormat);
+
         // Export training data
-        trainer.exportTrainingData("training_data" + startTime + ".csv");
+        trainer.exportTrainingData("training_data " + startTime + "_" + endTime + ".csv");
 
         System.out.println("\nSelf-play training complete!");
     }

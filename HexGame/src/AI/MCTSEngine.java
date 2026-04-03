@@ -200,6 +200,11 @@ public class MCTSEngine {
         // Control of center
         score += evaluatePosition(board, aiColor) * 0.05;
 
+        int turnCount = state.getTurnCount();
+        if (turnCount > 60) {
+            score -= (turnCount - 60) * 0.01;  // Penalty for long games
+        }
+
         return Math.max(0.0, Math.min(1.0, score));
     }
 

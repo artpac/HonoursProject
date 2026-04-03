@@ -142,4 +142,23 @@ public class GameState {
 
         return cloned;
     }
+
+    private Map<String, Integer> positionHistory = new HashMap<>();
+
+    public boolean isThreefoldRepetition() {
+        String position = getBoardHash();
+        int count = positionHistory.getOrDefault(position, 0) + 1;
+        positionHistory.put(position, count);
+        return count >= 3;
+    }
+
+    private String getBoardHash() {
+        // Create unique string representation of board
+        StringBuilder hash = new StringBuilder();
+        for (HexCoord coord : board.getAllCoordinates()) {
+            hash.append(coord.getQ()).append(",").append(coord.getR()).append(":");
+            hash.append(board.getTopPieceAt(coord).toString()).append(";");
+        }
+        return hash.toString();
+    }
 }
