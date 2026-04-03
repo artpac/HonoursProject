@@ -46,7 +46,7 @@ public class TrainingCoordinator {
         SelfPlayTrainer trainer = new SelfPlayTrainer(agent);
 
         // Set number of games
-        trainer.train(10, true);
+        trainer.train(1, true);
 
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("HH.mm");
         String endTime = LocalDateTime.now().format(dateFormat);

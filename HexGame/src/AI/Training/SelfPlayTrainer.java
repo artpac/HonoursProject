@@ -90,10 +90,17 @@ public class SelfPlayTrainer {
             double[] stateBefore = agent.encodeGameState(state, currentPlayer);
             move.execute(state);
             double[] stateAfter = agent.encodeGameState(state, currentPlayer);
+            double posReward = computePositionalReward(state, currentPlayer);
 
             GameExperience exp = new GameExperience(
-                    stateBefore, move, stateAfter, 0.0, GameResult.ONGOING);
+                    stateBefore, move, stateAfter, 0.0, posReward, GameResult.ONGOING);
             history.add(exp);
+
+            // Check for threefold repetition
+            if (state.isThreefoldRepetition()) {
+                history.get(history.size() - 1).result = GameResult.DRAW;
+                break;
+            }
 
             // Check for terminal state
             String winMessage = checkWinCondition(state);
@@ -119,36 +126,35 @@ public class SelfPlayTrainer {
     }
 
     /**
-     * Assign rewards based on game outcome
+     * Assign rewards based on game outcome blended with positional heuristic.
+     * Outcome accounts for 70%, positional heuristic for 30%, so the network
+     * receives a meaningful gradient even when all games end in draws.
      */
     private void assignRewards(List<GameExperience> history, GameResult result) {
-        double finalReward;
-        if (result == GameResult.DRAW) {
-            finalReward = 0.5;
-        } else {
-            finalReward = 1.0; // Win for that player
-        }
+        double finalReward = (result == GameResult.DRAW) ? 0.5 : 1.0;
 
-        // Propagate rewards backward with discount
         for (int i = history.size() - 1; i >= 0; i--) {
             GameExperience exp = history.get(i);
 
-            // Alternate rewards (opponent gets negative reward)
-            boolean isWinner = (result == GameResult.WHITE_WIN && i % 2 == 0) ||
-                    (result == GameResult.BLACK_WIN && i % 2 == 1);
-
+            double outcomeReward;
             if (result == GameResult.DRAW) {
-                exp.reward = 0.5;
+                outcomeReward = 0.5;
             } else {
-                exp.reward = isWinner ? finalReward : (1.0 - finalReward);
+                boolean isWinner = (result == GameResult.WHITE_WIN && i % 2 == 0) ||
+                        (result == GameResult.BLACK_WIN && i % 2 == 1);
+                outcomeReward = isWinner ? finalReward : (1.0 - finalReward);
             }
-            // Apply temporal discount
+
+            // Blend: 70% outcome signal, 30% live positional heuristic
+            exp.reward = 0.7 * outcomeReward + 0.3 * exp.positionalReward;
+
             finalReward *= discountFactor;
         }
+
+        // Extra penalty for repetition-draws: halve all rewards
         if (result == GameResult.DRAW && history.size() >= 95) {
-            // Game timed out without winner - bad for both
             for (GameExperience exp : history) {
-                exp.reward *= 0.5;  // Halve all rewards
+                exp.reward *= 0.5;
             }
         }
     }
@@ -245,6 +251,42 @@ public class SelfPlayTrainer {
     }
 
     /**
+     * Positional heuristic reward for the given player based on queen pressure.
+     * Returns a value in [0, 1]: >0.5 means player is doing well positionally.
+     */
+    private double computePositionalReward(GameState state, Color player) {
+        HiveBoard board = state.getBoard();
+        Color opponent = player.equals(Color.WHITE) ? Color.BLACK : Color.WHITE;
+
+        int ownQueenNeighbors = 0;
+        int oppQueenNeighbors = 0;
+        boolean ownQueenPlaced = false;
+        boolean oppQueenPlaced = false;
+
+        for (Map.Entry<HexCoord, List<Piece>> entry : board.getBoard().entrySet()) {
+            Piece piece = entry.getValue().get(0);
+            if (piece.getType() == PieceType.QUEEN) {
+                int neighbors = 0;
+                for (HexCoord neighbor : entry.getKey().getNeighbors()) {
+                    if (board.containsCoord(neighbor)) neighbors++;
+                }
+                if (piece.getColor().equals(player)) {
+                    ownQueenPlaced = true;
+                    ownQueenNeighbors = neighbors;
+                } else {
+                    oppQueenPlaced = true;
+                    oppQueenNeighbors = neighbors;
+                }
+            }
+        }
+
+        double score = 0.5;
+        if (oppQueenPlaced) score += (oppQueenNeighbors / 6.0) * 0.35; // reward surrounding enemy queen
+        if (ownQueenPlaced) score -= (ownQueenNeighbors / 6.0) * 0.35; // penalise own queen being surrounded
+        return Math.max(0.0, Math.min(1.0, score));
+    }
+
+    /**
      * Check win condition without needing a save file
      */
     private String checkWinCondition(GameState state) {
@@ -292,14 +334,17 @@ class GameExperience {
     AIMove move;
     double[] stateAfter;
     double reward;
+    double positionalReward; // heuristic score at time of move
     GameResult result;
 
     public GameExperience(double[] stateBefore, AIMove move,
-                          double[] stateAfter, double reward, GameResult result) {
+                          double[] stateAfter, double reward,
+                          double positionalReward, GameResult result) {
         this.stateBefore = stateBefore;
         this.move = move;
         this.stateAfter = stateAfter;
         this.reward = reward;
+        this.positionalReward = positionalReward;
         this.result = result;
     }
 }

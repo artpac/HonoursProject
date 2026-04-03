@@ -153,9 +153,11 @@ public class GameState {
     }
 
     private String getBoardHash() {
-        // Create unique string representation of board
+        // Create unique string representation of board (sorted for determinism)
+        List<HexCoord> coords = new ArrayList<>(board.getAllCoordinates());
+        coords.sort(Comparator.comparingInt(HexCoord::getQ).thenComparingInt(HexCoord::getR));
         StringBuilder hash = new StringBuilder();
-        for (HexCoord coord : board.getAllCoordinates()) {
+        for (HexCoord coord : coords) {
             hash.append(coord.getQ()).append(",").append(coord.getR()).append(":");
             hash.append(board.getTopPieceAt(coord).toString()).append(";");
         }
