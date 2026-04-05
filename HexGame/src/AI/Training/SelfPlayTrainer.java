@@ -15,6 +15,7 @@ public class SelfPlayTrainer {
     private int maxBufferSize = 10000;
     private int batchSize = 64;
     private double discountFactor = 0.99;
+    public String finalStats;
 
     public SelfPlayTrainer(HiveAI agent) {
         this.agent = agent;
@@ -67,8 +68,8 @@ public class SelfPlayTrainer {
         }
 
         System.out.println("Training complete!");
-        System.out.printf("Final stats - White wins: %d, Black wins: %d, Draws: %d\n",
-                whiteWins, blackWins, draws);
+        finalStats = "Final Stats - White wins: " + whiteWins + " Black wins: " + blackWins + " Draws: " + draws + "\n";
+        System.out.println(finalStats);
     }
 
     /**
@@ -244,6 +245,7 @@ public class SelfPlayTrainer {
                 writer.printf("%s,%.3f,%s\n",
                         exp.move.toString(), exp.reward, exp.result);
             }
+            writer.println(finalStats);
             System.out.println("Training data exported to " + filename);
         } catch (IOException e) {
             System.err.println("Error exporting data: " + e.getMessage());

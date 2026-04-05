@@ -46,7 +46,7 @@ public class TrainingCoordinator {
         SelfPlayTrainer trainer = new SelfPlayTrainer(agent);
 
         // Set number of games
-        trainer.train(1, true);
+        trainer.train(500, true);
 
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("HH.mm");
         String endTime = LocalDateTime.now().format(dateFormat);
@@ -63,7 +63,7 @@ public class TrainingCoordinator {
     private static void runEvolutionaryTraining(String startTime) {
         System.out.println("Starting evolutionary training...\n");
 
-        EvolutionaryTrainer evolver = new EvolutionaryTrainer(5); // Population of 50
+        EvolutionaryTrainer evolver = new EvolutionaryTrainer(10); // Population of 50
 
         // Evolve for 100 generations
         evolver.evolve(5, 20); // 5 games per evaluation
@@ -84,8 +84,8 @@ public class TrainingCoordinator {
 
         // Phase 1: Evolutionary training for diversity
         System.out.println("Phase 1: Evolutionary initialization (50 generations)");
-        EvolutionaryTrainer evolver = new EvolutionaryTrainer(30);
-        evolver.evolve(50, 3);
+        EvolutionaryTrainer evolver = new EvolutionaryTrainer(10);
+        evolver.evolve(10, 5);
 
         // Get best evolved agent
         HiveAI bestAgent = evolver.getBestAgent();

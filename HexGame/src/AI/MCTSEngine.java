@@ -48,6 +48,7 @@ public class MCTSEngine {
             }
 
             // Expansion: add children
+            if(node == null) continue;
             if (!isTerminal(state) && node.visits > 0) {
                 expand(node, state);
                 if (!node.children.isEmpty()) {
