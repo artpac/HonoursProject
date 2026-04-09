@@ -3,6 +3,7 @@ package Game;
 import DataCollection.SaveGame;
 import UI.HiveGame;
 import UI.MainScreen;
+import AI.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,6 +11,7 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.*;
 import java.util.List;
+import javax.swing.Timer;
 
 public class GameBoard extends JPanel implements KeyListener{
     private GameState gameState;
@@ -19,15 +21,15 @@ public class GameBoard extends JPanel implements KeyListener{
     private MoveCalculator moveCalculator;
     private WinConditionChecker winChecker;
     private GameRenderer renderer;
-
     private Piece selectedPiece;
     private HexCoord selectedCoord;
     private List<HexCoord> validMoves;
     private JLabel statusLabel;
-
     private Piece draggedPiece;
     private Point dragPoint;
     private boolean isDragging;
+    private HiveAI aiOpponent;
+    private Color aiColor;
 
     public GameBoard(File saveGame) {
         //Set Game Size and Colour
@@ -60,6 +62,11 @@ public class GameBoard extends JPanel implements KeyListener{
         repaint();
 
         setupMouseListeners();
+    }
+
+    public void setAIOpponent(HiveAI ai, Color color) {
+        this.aiOpponent = ai;
+        this.aiColor = color;
     }
 
     private void setupMouseListeners() {
@@ -190,6 +197,51 @@ public class GameBoard extends JPanel implements KeyListener{
         }
 
         statusLabel.setText(status);
+
+        if (aiOpponent != null && gameState.getCurrentPlayer().equals(aiColor)) {
+            // Small delay so player can see the board
+            Timer timer = new Timer(800, e -> makeAIMove());
+            timer.setRepeats(false);
+            timer.start();
+        }
+    }
+
+    private void makeAIMove() {
+        AIMove move = aiOpponent.getBestMove(gameState, aiColor);
+        if (move == null) {
+            System.out.println("AI has no legal moves");
+            return;
+        }
+
+        System.out.println("AI: " + move);
+
+        if (move.getType() == MoveType.PLACE) {
+            // Find the ACTUAL piece from the reserve
+            Piece actualPiece = move.findActualPiece(gameState);
+
+            if (actualPiece == null) {
+                System.err.println("ERROR: Cannot find piece in reserve!");
+                return;
+            }
+
+            System.out.println("Placing: " + actualPiece + " (from reserve)");
+
+            gameState.getBoard().placePiece(actualPiece, move.getTo());
+            gameState.removePieceFromReserve(actualPiece);
+
+            if (actualPiece.getType() == PieceType.QUEEN) {
+                gameState.setQueenPlaced(aiColor);
+            }
+
+            selectedPiece = actualPiece;
+        } else if (move.getType() == MoveType.MOVE) {
+            gameState.getBoard().movePiece(move.getFrom(), move.getTo());
+            selectedPiece = move.getPiece();
+        }
+
+        saveGame(move.getTo());
+        repaint();
+        nextTurn();
     }
 
     public static void placeReplayPiece(HexCoord coord, Piece piece, GameState gameState) {

@@ -2,7 +2,7 @@ package Game;
 
 import java.util.*;
 
-class MovementValidator {
+public class MovementValidator {
     private HiveBoard board;
 
     public MovementValidator(HiveBoard board) {
