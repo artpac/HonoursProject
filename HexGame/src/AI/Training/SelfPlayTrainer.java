@@ -6,9 +6,7 @@ import java.awt.Color;
 import java.util.*;
 import java.io.*;
 
-/**
- * Self-play training system for reinforcement learning
- */
+
 public class SelfPlayTrainer {
     private HiveAI agent;
     private List<GameExperience> replayBuffer;
@@ -22,9 +20,7 @@ public class SelfPlayTrainer {
         this.replayBuffer = new ArrayList<>();
     }
 
-    /**
-     * Run self-play training loop
-     */
+
     public void train(int numGames, boolean verbose) {
         System.out.println("Starting self-play training for " + numGames + " games...");
 
@@ -35,23 +31,19 @@ public class SelfPlayTrainer {
         for (int game = 0; game < numGames; game++) {
             List<GameExperience> gameHistory = playSelfPlayGame();
 
-            // Determine winner and assign rewards
             GameResult result = gameHistory.get(gameHistory.size() - 1).result;
             assignRewards(gameHistory, result);
 
-            // Add to replay buffer
             replayBuffer.addAll(gameHistory);
             if (replayBuffer.size() > maxBufferSize) {
                 replayBuffer = replayBuffer.subList(
                         replayBuffer.size() - maxBufferSize, replayBuffer.size());
             }
 
-            // Train on batch
             if (replayBuffer.size() >= batchSize) {
                 trainOnBatch();
             }
 
-            // Track statistics
             if (result == GameResult.WHITE_WIN) whiteWins++;
             else if (result == GameResult.BLACK_WIN) blackWins++;
             else draws++;
@@ -61,33 +53,30 @@ public class SelfPlayTrainer {
                         game + 1, numGames, whiteWins, blackWins, draws, replayBuffer.size());
             }
 
-            // Save checkpoint every 100 games
             if ((game + 1) % 100 == 0) {
                 saveCheckpoint(game + 1);
             }
         }
 
-        System.out.println("Training complete!");
+        System.out.println("Training complete");
         finalStats = "Final Stats - White wins: " + whiteWins + " Black wins: " + blackWins + " Draws: " + draws + "\n";
         System.out.println(finalStats);
     }
 
-    /**
-     * Play one self-play game
-     */
+
     private List<GameExperience> playSelfPlayGame() {
         GameState state = new GameState();
         List<GameExperience> history = new ArrayList<>();
-        int maxMoves = 100; // Prevent infinite games
+        int maxMoves = 100;
 
         for (int turn = 0; turn < maxMoves; turn++) {
             Color currentPlayer = state.getCurrentPlayer();
 
-            // Get AI move
             AIMove move = agent.getBestMove(state, currentPlayer);
-            if (move == null) break; // No legal moves
+            //No legal moves
+            if (move == null) break;
 
-            // Record experience
+
             double[] stateBefore = agent.encodeGameState(state, currentPlayer);
             move.execute(state);
             double[] stateAfter = agent.encodeGameState(state, currentPlayer);
@@ -97,13 +86,11 @@ public class SelfPlayTrainer {
                     stateBefore, move, stateAfter, 0.0, posReward, GameResult.ONGOING);
             history.add(exp);
 
-            // Check for threefold repetition
             if (state.isThreefoldRepetition()) {
                 history.get(history.size() - 1).result = GameResult.DRAW;
                 break;
             }
 
-            // Check for terminal state
             String winMessage = checkWinCondition(state);
 
             if (winMessage != null) {
@@ -126,11 +113,8 @@ public class SelfPlayTrainer {
         return history;
     }
 
-    /**
-     * Assign rewards based on game outcome blended with positional heuristic.
-     * Outcome accounts for 70%, positional heuristic for 30%, so the network
-     * receives a meaningful gradient even when all games end in draws.
-     */
+
+    //Rewards Assigned on game outcome
     private void assignRewards(List<GameExperience> history, GameResult result) {
         double finalReward = (result == GameResult.DRAW) ? 0.5 : 1.0;
 
@@ -160,17 +144,13 @@ public class SelfPlayTrainer {
         }
     }
 
-    /**
-     * Train neural networks on a batch of experiences
-     */
+
     private void trainOnBatch() {
         Random rand = new Random();
 
         for (int i = 0; i < batchSize; i++) {
-            // Sample random experience
             GameExperience exp = replayBuffer.get(rand.nextInt(replayBuffer.size()));
 
-            // Compute TD target
             double[] currentQ = agent.policyNetwork.forward(exp.stateBefore);
             double[] nextQ = agent.policyNetwork.forward(exp.stateAfter);
 
@@ -181,23 +161,19 @@ public class SelfPlayTrainer {
 
             double target = exp.reward + discountFactor * maxNextQ;
 
-            // Create target vector (only update for taken action)
             double[] targetVector = currentQ.clone();
             int actionIdx = getMoveIndex(exp.move);
             if (actionIdx < targetVector.length) {
                 targetVector[actionIdx] = target;
             }
 
-            // Compute gradient
             double[] gradient = new double[currentQ.length];
             for (int j = 0; j < gradient.length; j++) {
                 gradient[j] = currentQ[j] - targetVector[j];
             }
 
-            // Train policy network
             agent.policyNetwork.train(exp.stateBefore, targetVector, gradient);
 
-            // Train value network (separate target)
             double[] valueTarget = {exp.reward};
             double[] valueOutput = agent.valueNetwork.forward(exp.stateBefore);
             double[] valueGradient = {valueOutput[0] - exp.reward};
@@ -205,11 +181,9 @@ public class SelfPlayTrainer {
         }
     }
 
-    /**
-     * Save training checkpoint
-     */
+
     private void saveCheckpoint(int gameNumber) {
-        System.out.println("\n=== Saving Checkpoint ===");
+        System.out.println("\nSaving Checkpoint");
         System.out.println("After game: " + gameNumber);
         System.out.println("Buffer size: " + replayBuffer.size());
 
@@ -223,21 +197,13 @@ public class SelfPlayTrainer {
             System.err.println("Error saving checkpoint log: " + e.getMessage());
         }
 
-        System.out.println("✓ Checkpoint saved to models/");
-        System.out.println("========================\n");
+        System.out.println("Checkpoint saved to models/");
     }
 
-    /**
-     * Get index for move (simplified mapping)
-     */
     private int getMoveIndex(AIMove move) {
-        // Simple hash-based indexing
         return Math.abs(move.hashCode()) % 64;
     }
 
-    /**
-     * Export training data for analysis
-     */
     public void exportTrainingData(String filename) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
             writer.println("Move,Reward,Result");
@@ -252,10 +218,8 @@ public class SelfPlayTrainer {
         }
     }
 
-    /**
-     * Positional heuristic reward for the given player based on queen pressure.
-     * Returns a value in [0, 1]: >0.5 means player is doing well positionally.
-     */
+
+    //Reward based on queen pressure
     private double computePositionalReward(GameState state, Color player) {
         HiveBoard board = state.getBoard();
         Color opponent = player.equals(Color.WHITE) ? Color.BLACK : Color.WHITE;
@@ -288,9 +252,7 @@ public class SelfPlayTrainer {
         return Math.max(0.0, Math.min(1.0, score));
     }
 
-    /**
-     * Check win condition without needing a save file
-     */
+    //Check win condition without needing a save file
     private String checkWinCondition(GameState state) {
         HiveBoard board = state.getBoard();
         boolean whiteQueenSurrounded = false;
@@ -328,15 +290,13 @@ public class SelfPlayTrainer {
     }
 }
 
-/**
- * Stores one experience from self-play
- */
+
 class GameExperience {
     double[] stateBefore;
     AIMove move;
     double[] stateAfter;
     double reward;
-    double positionalReward; // heuristic score at time of move
+    double positionalReward;
     GameResult result;
 
     public GameExperience(double[] stateBefore, AIMove move,

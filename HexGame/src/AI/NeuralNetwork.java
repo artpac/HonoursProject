@@ -3,9 +3,7 @@ package AI;
 import java.io.*;
 import java.util.*;
 
-/**
- * Deep Neural Network for policy and value estimation
- */
+
 public class NeuralNetwork implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -31,9 +29,7 @@ public class NeuralNetwork implements Serializable {
         }
     }
 
-    /**
-     * Initialize weights with Xavier initialization
-     */
+
     private void initializeWeights() {
         weights = new double[layerSizes.length - 1][][];
         biases = new double[layerSizes.length - 1][];
@@ -57,9 +53,7 @@ public class NeuralNetwork implements Serializable {
         }
     }
 
-    /**
-     * Forward pass through network
-     */
+
     public double[] forward(double[] input) {
         double[] activation = input.clone();
 
@@ -71,8 +65,7 @@ public class NeuralNetwork implements Serializable {
                 for (int j = 0; j < activation.length; j++) {
                     sum += weights[l][i][j] * activation[j];
                 }
-
-                // ReLU activation for hidden layers, sigmoid for output
+                
                 if (l < weights.length - 1) {
                     nextActivation[i] = relu(sum);
                 } else {
@@ -86,11 +79,8 @@ public class NeuralNetwork implements Serializable {
         return activation;
     }
 
-    /**
-     * Train network using gradient descent
-     */
+
     public void train(double[] input, double[] targetOutput, double[] outputGradient) {
-        // Forward pass to get activations
         List<double[]> activations = new ArrayList<>();
         double[] current = input.clone();
         activations.add(current);
@@ -114,16 +104,14 @@ public class NeuralNetwork implements Serializable {
         for (int l = weights.length - 1; l >= 0; l--) {
             double[] prevActivation = activations.get(l);
             double[] currentActivation = activations.get(l + 1);
-
-            // Update weights and biases
+            
             for (int i = 0; i < weights[l].length; i++) {
                 for (int j = 0; j < weights[l][i].length; j++) {
                     weights[l][i][j] -= learningRate * delta[i] * prevActivation[j];
                 }
                 biases[l][i] -= learningRate * delta[i];
             }
-
-            // Compute delta for previous layer
+            
             if (l > 0) {
                 double[] newDelta = new double[prevActivation.length];
                 for (int j = 0; j < prevActivation.length; j++) {
@@ -138,9 +126,7 @@ public class NeuralNetwork implements Serializable {
         }
     }
 
-    /**
-     * Activation functions
-     */
+
     private double relu(double x) {
         return Math.max(0, x);
     }
@@ -153,14 +139,7 @@ public class NeuralNetwork implements Serializable {
         return 1.0 / (1.0 + Math.exp(-x));
     }
 
-    private double sigmoidDerivative(double x) {
-        double s = sigmoid(x);
-        return s * (1 - s);
-    }
 
-    /**
-     * Save weights to file
-     */
     public void saveToFile() {
         try {
             // Create models directory if it doesn't exist
@@ -182,9 +161,7 @@ public class NeuralNetwork implements Serializable {
         }
     }
 
-    /**
-     * Load weights from file
-     */
+
     private void loadFromFile() {
         try (ObjectInputStream ois = new ObjectInputStream(
                 new FileInputStream(saveFilePath))) {
@@ -192,8 +169,8 @@ public class NeuralNetwork implements Serializable {
             biases = (double[][]) ois.readObject();
             System.out.println("Network weights loaded successfully from " + saveFilePath);
         } catch (IOException | ClassNotFoundException e) {
-            System.out.println("No existing weights found (this is normal for first run)");
-            System.out.println("Initializing with random weights...");
+            System.out.println("No existing weights found");
+            System.out.println("Initializing with random weights");
             initializeWeights();
         }
     }
@@ -203,9 +180,7 @@ public class NeuralNetwork implements Serializable {
         return file.exists();
     }
 
-    /**
-     * Clone this network (for evolutionary algorithms)
-     */
+
     public NeuralNetwork clone() {
         NeuralNetwork clone = new NeuralNetwork(false, layerSizes, saveFilePath);
 
@@ -220,9 +195,7 @@ public class NeuralNetwork implements Serializable {
         return clone;
     }
 
-    /**
-     * Mutate weights (for evolutionary algorithm)
-     */
+
     public void mutate(double mutationRate, double mutationStrength) {
         Random rand = new Random();
 
@@ -243,9 +216,7 @@ public class NeuralNetwork implements Serializable {
         }
     }
 
-    /**
-     * Crossover with another network (for evolutionary algorithm)
-     */
+
     public NeuralNetwork crossover(NeuralNetwork other) {
         NeuralNetwork child = new NeuralNetwork(false);
         Random rand = new Random();

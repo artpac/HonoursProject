@@ -26,12 +26,8 @@ public class AIMove {
     public HexCoord getFrom() { return from; }
     public HexCoord getTo() { return to; }
     public MoveType getType() { return type; }
-    public double getScore() { return score; }
-    public void setScore(double s) { this.score = s; }
 
-    /**
-     * Find the actual piece in the game state's reserve that matches this move's piece
-     */
+
     public Piece findActualPiece(GameState state) {
         if (type == MoveType.MOVE) {
             // For movement, get piece from board

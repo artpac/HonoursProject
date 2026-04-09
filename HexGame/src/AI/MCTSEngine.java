@@ -4,41 +4,35 @@ import Game.*;
 import java.awt.Color;
 import java.util.*;
 
-/**
- * Monte Carlo Tree Search with neural network guidance
- */
+
 public class MCTSEngine {
     private NeuralNetwork policyNet;
     private NeuralNetwork valueNet;
-    private double explorationConstant = 1.41; // UCT constant
+    private double explorationConstant = 1.41;
 
     public MCTSEngine(NeuralNetwork policy, NeuralNetwork value) {
         this.policyNet = policy;
         this.valueNet = value;
     }
 
-    /**
-     * Run MCTS search and return best move
-     */
+
     public AIMove search(GameState rootState, Color aiColor, int iterations) {
         MCTSNode root = new MCTSNode(null, null, rootState.clone());
 
-        // Safety: limit iterations and add timeout
-        int maxIterations = Math.min(iterations, 50); // Reduced cap from 100 to 50 for training
+        // Safety: limit iterations timeout
+        int maxIterations = Math.min(iterations, 50);
         long startTime = System.currentTimeMillis();
-        long timeoutMs = 2000; // Reduced from 5 seconds to 2 seconds
+        long timeoutMs = 2000;
 
         for (int i = 0; i < maxIterations; i++) {
-            // Timeout check every 10 iterations to reduce overhead
             if (i % 10 == 0 && System.currentTimeMillis() - startTime > timeoutMs) {
-                // Don't print timeout during training to reduce console spam
                 break;
             }
 
             MCTSNode node = root;
             GameState state = rootState.clone();
 
-            // Selection: traverse tree using UCT
+
             int selectionDepth = 0;
             while (!node.isLeaf() && !isTerminal(state) && selectionDepth < 100) {
                 node = selectChild(node);
@@ -47,7 +41,6 @@ public class MCTSEngine {
                 selectionDepth++;
             }
 
-            // Expansion: add children
             if(node == null) continue;
             if (!isTerminal(state) && node.visits > 0) {
                 expand(node, state);
@@ -70,9 +63,7 @@ public class MCTSEngine {
         return getBestMove(root);
     }
 
-    /**
-     * Select child using UCT formula
-     */
+
     private MCTSNode selectChild(MCTSNode node) {
         if (node.children.isEmpty()) return null;
 
@@ -85,7 +76,6 @@ public class MCTSEngine {
                     Math.sqrt(Math.log(node.visits + 1) / (child.visits + 1e-8));
             double uctValue = exploitation + exploration;
 
-            // Add policy network prior
             if (policyNet != null) {
                 uctValue += 0.3 * child.prior;
             }
@@ -99,25 +89,20 @@ public class MCTSEngine {
         return best;
     }
 
-    /**
-     * Expand node by adding all legal moves as children
-     */
+
     private void expand(MCTSNode node, GameState state) {
         Color currentPlayer = state.getCurrentPlayer();
         List<AIMove> moves = generateMoves(state, currentPlayer);
 
-        // Safety: Limit number of children
         int maxChildren = 50;
         moves = moves.size() > maxChildren ? moves.subList(0, maxChildren) : moves;
 
-        // Get policy priors from neural network
         double[] priors = null;
         if (policyNet != null) {
             try {
                 double[] stateVec = encodeState(state, currentPlayer);
                 priors = policyNet.forward(stateVec);
             } catch (Exception e) {
-                // If neural network fails, continue without priors
                 priors = null;
             }
         }
@@ -131,11 +116,8 @@ public class MCTSEngine {
         }
     }
 
-    /**
-     * Evaluate position using neural network or heuristic
-     */
+
     private double evaluate(GameState state, Color aiColor) {
-        // Check for terminal state using our own win detection
         String winResult = checkWinCondition(state);
 
         if (winResult != null) {
@@ -145,23 +127,19 @@ public class MCTSEngine {
             return aiWon ? 1.0 : 0.0;
         }
 
-        // Use value network if available
         if (valueNet != null) {
             double[] stateVec = encodeState(state, aiColor);
             double[] output = valueNet.forward(stateVec);
             return output[0];
         }
 
-        // Fallback: heuristic evaluation
         return heuristicEval(state, aiColor);
     }
 
-    /**
-     * Heuristic evaluation function
-     */
+
     private double heuristicEval(GameState state, Color aiColor) {
         HiveBoard board = state.getBoard();
-        double score = 0.5; // Neutral starting point
+        double score = 0.5;
 
         // Find queens - use copy to avoid ConcurrentModificationException
         HexCoord aiQueenPos = null;
@@ -185,12 +163,14 @@ public class MCTSEngine {
         // Evaluate queen safety
         if (aiQueenPos != null) {
             int aiQueenNeighbors = countNeighbors(board, aiQueenPos);
-            score -= aiQueenNeighbors * 0.08; // Penalize surrounded queen
+            // Penalize surrounded queen
+            score -= aiQueenNeighbors * 0.08;
         }
 
         if (oppQueenPos != null) {
             int oppQueenNeighbors = countNeighbors(board, oppQueenPos);
-            score += oppQueenNeighbors * 0.08; // Reward surrounding opponent queen
+            // Reward surrounding opponent queen
+            score += oppQueenNeighbors * 0.08;
         }
 
         // Piece mobility
@@ -201,9 +181,10 @@ public class MCTSEngine {
         // Control of center
         score += evaluatePosition(board, aiColor) * 0.05;
 
+        // Penalty for long games
         int turnCount = state.getTurnCount();
         if (turnCount > 60) {
-            score -= (turnCount - 60) * 0.01;  // Penalty for long games
+            score -= (turnCount - 60) * 0.01;
         }
 
         return Math.max(0.0, Math.min(1.0, score));
@@ -239,7 +220,6 @@ public class MCTSEngine {
             if (stack != null && !stack.isEmpty()) {
                 Piece piece = stack.get(0);
                 if (piece.getColor().equals(color)) {
-                    // Prefer pieces closer to center
                     double distance = Math.sqrt(coord.getQ() * coord.getQ() + coord.getR() * coord.getR());
                     score += 1.0 / (1.0 + distance);
                 }
@@ -248,21 +228,16 @@ public class MCTSEngine {
         return score;
     }
 
-    /**
-     * Backpropagate result up the tree
-     */
+
     private void backpropagate(MCTSNode node, double value) {
         while (node != null) {
             node.visits++;
             node.totalValue += value;
             node = node.parent;
-            value = 1.0 - value; // Flip for opponent
+            value = 1.0 - value;
         }
     }
 
-    /**
-     * Get best move based on visit counts
-     */
     private AIMove getBestMove(MCTSNode root) {
         MCTSNode best = null;
         int maxVisits = -1;
@@ -281,9 +256,7 @@ public class MCTSEngine {
         return checkWinCondition(state) != null;
     }
 
-    /**
-     * Check win condition without needing a save file
-     */
+
     private String checkWinCondition(GameState state) {
         HiveBoard board = state.getBoard();
         boolean whiteQueenSurrounded = false;
@@ -295,7 +268,6 @@ public class MCTSEngine {
             if (stack != null && !stack.isEmpty()) {
                 Piece piece = stack.get(0); // Bottom piece
                 if (piece.getType() == PieceType.QUEEN) {
-                    // Count neighbors
                     int neighbors = 0;
                     for (HexCoord neighbor : coord.getNeighbors()) {
                         if (board.containsCoord(neighbor)) {
@@ -322,7 +294,7 @@ public class MCTSEngine {
             return "White wins! Black Queen surrounded!";
         }
 
-        return null; // Game continues
+        return null;
     }
 
     private List<AIMove> generateMoves(GameState state, Color color) {
@@ -342,9 +314,7 @@ public class MCTSEngine {
     }
 }
 
-/**
- * MCTS Tree Node
- */
+
 class MCTSNode {
     MCTSNode parent;
     AIMove move;

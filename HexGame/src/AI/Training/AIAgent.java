@@ -3,9 +3,6 @@ package AI.Training;
 
 import AI.*;
 
-/**
- * Wrapper for AI agent with fitness tracking
- */
 public class AIAgent {
     public HiveAI ai;
     public int id;

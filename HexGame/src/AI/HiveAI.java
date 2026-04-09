@@ -4,12 +4,10 @@ import Game.*;
 import java.awt.Color;
 import java.util.*;
 
-/**
- * Hybrid AI System combining RL, Evolutionary Algorithms, and MCTS
- */
+
 public class HiveAI {
-    public NeuralNetwork policyNetwork;  // Changed to public
-    public NeuralNetwork valueNetwork;   // Changed to public
+    public NeuralNetwork policyNetwork;
+    public NeuralNetwork valueNetwork;
     private MCTSEngine mctsEngine;
     private double explorationRate = 0.15;
 
@@ -20,18 +18,13 @@ public class HiveAI {
         this.mctsEngine = new MCTSEngine(policyNetwork, valueNetwork);
     }
 
-    /**
-     * Main decision method - chooses best move
-     */
+
     public AIMove getBestMove(GameState state, Color aiColor) {
-        // Get board state encoding
         double[] stateVector = encodeGameState(state, aiColor);
 
-        // Generate all legal moves
         List<AIMove> legalMoves = generateLegalMoves(state, aiColor);
         if (legalMoves.isEmpty()) return null;
 
-        // Blend different AI approaches based on game phase
         int turnCount = state.getTurnCount();
 
         if (turnCount < 4) {
@@ -42,21 +35,18 @@ public class HiveAI {
             return getBlendedMove(state, legalMoves, stateVector);
         } else {
             // End game: Pure MCTS for tactical precision
-            return mctsEngine.search(state, aiColor, 50);  // Reduced from 200
+            return mctsEngine.search(state, aiColor, 50);
         }
     }
 
-    /**
-     * Generate all legal moves for current state
-     */
-    public List<AIMove> generateLegalMoves(GameState state, Color color) {  // Changed to public
+
+    public List<AIMove> generateLegalMoves(GameState state, Color color) {
         List<AIMove> moves = new ArrayList<>();
         HiveBoard board = state.getBoard();
 
         // Placement moves - use ACTUAL pieces from reserve
         List<Piece> reserve = state.getReserve(color);
         for (Piece piece : reserve) {
-            // Must place queen by turn 4
             if (state.mustPlaceQueen() && piece.getType() != PieceType.QUEEN) {
                 continue;
             }
@@ -87,9 +77,7 @@ public class HiveAI {
         return moves;
     }
 
-    /**
-     * Get valid placement coordinates
-     */
+
     private List<HexCoord> getValidPlacementCoords(HiveBoard board, Piece piece, Color color) {
         List<HexCoord> coords = new ArrayList<>();
         PlacementValidator validator = new PlacementValidator(board);
@@ -104,7 +92,6 @@ public class HiveAI {
         for (HexCoord existing : board.getAllCoordinates()) {
             for (HexCoord neighbor : existing.getNeighbors()) {
                 if (!checked.contains(neighbor)) {
-                    // Use the actual piece passed in, don't create a new one
                     if (validator.canPlaceAt(neighbor, piece)) {
                         coords.add(neighbor);
                     }
@@ -116,10 +103,7 @@ public class HiveAI {
         return coords;
     }
 
-    /**
-     * Encode game state as neural network input
-     */
-    public double[] encodeGameState(GameState state, Color aiColor) {  // Changed to public
+    public double[] encodeGameState(GameState state, Color aiColor) {
         // Feature vector: 11x11 grid * 2 colors * 5 piece types = 1210 features
         // + game phase features = 1220 total
         double[] features = new double[1220];
@@ -151,17 +135,13 @@ public class HiveAI {
         return features;
     }
 
-    /**
-     * Blend RL policy with MCTS
-     */
+
     private AIMove getBlendedMove(GameState state, List<AIMove> moves, double[] stateVector) {
-        // Get policy network probabilities
         double[] policyProbs = policyNetwork.forward(stateVector);
 
-        // Run very limited MCTS (reduced iterations for speed)
-        AIMove mctsMove = mctsEngine.search(state, state.getCurrentPlayer(), 10);  // Reduced from 30
+        AIMove mctsMove = mctsEngine.search(state, state.getCurrentPlayer(), 10);
 
-        // Blend: 30% MCTS, 70% policy network (reversed for speed)
+        // Blend: 30% MCTS, 70% policy network
         if (Math.random() < 0.3 && mctsMove != null) {
             return mctsMove;
         } else {
@@ -169,11 +149,8 @@ public class HiveAI {
         }
     }
 
-    /**
-     * Get early game move using simple heuristics
-     */
+
     private AIMove getEarlyGameMove(GameState state, List<AIMove> moves, Color color) {
-        // First move: place at center
         if (state.getTurnCount() == 0) {
             for (AIMove move : moves) {
                 if (move.getTo().equals(new HexCoord(0, 0))) {
@@ -182,7 +159,6 @@ public class HiveAI {
             }
         }
 
-        // Must place queen by turn 3-4
         if (state.mustPlaceQueen()) {
             for (AIMove move : moves) {
                 if (move.getPiece().getType() == PieceType.QUEEN) {
@@ -191,17 +167,14 @@ public class HiveAI {
             }
         }
 
-        // Otherwise, select a random valid move
         return moves.isEmpty() ? null : moves.get(new Random().nextInt(moves.size()));
     }
 
-    /**
-     * Select move based on policy probabilities
-     */
+
     private AIMove selectMoveFromPolicy(List<AIMove> moves, double[] probs) {
         if (moves.isEmpty()) return null;
 
-        // Softmax with temperature
+
         double temperature = 0.5;
         double[] adjustedProbs = new double[moves.size()];
         double sum = 0.0;
@@ -210,8 +183,7 @@ public class HiveAI {
             adjustedProbs[i] = Math.exp(probs[i % probs.length] / temperature);
             sum += adjustedProbs[i];
         }
-
-        // Sample from distribution
+        
         double rand = Math.random() * sum;
         double cumulative = 0.0;
         for (int i = 0; i < moves.size(); i++) {
