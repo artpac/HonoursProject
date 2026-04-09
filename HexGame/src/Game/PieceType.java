@@ -1,11 +1,11 @@
 package Game;
 
 public enum PieceType {
-    QUEEN(1, "Q"),
-    ANT(3, "A"),
-    SPIDER(2, "S"),
-    GRASSHOPPER(3, "G"),
-    BEETLE(2, "B");
+    QUEEN(1, "Qu"),
+    ANT(3, "An"),
+    SPIDER(2, "Sp"),
+    GRASSHOPPER(3, "Gr"),
+    BEETLE(2, "Be");
 
     private final int count;
     private final String symbol;

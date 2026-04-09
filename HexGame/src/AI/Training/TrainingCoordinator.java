@@ -5,12 +5,9 @@ import Game.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Main coordinator for all AI training methods
- */
 public class TrainingCoordinator {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         System.out.println("Hive AI Training System\n");
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH.mm");
         String startTime = LocalDateTime.now().format(dateFormat);
@@ -36,10 +33,16 @@ public class TrainingCoordinator {
 
         trainer.train(1, true);
 
+
+        java.io.File trainingDir = new java.io.File("trainingData/");
+        if (!trainingDir.exists()) {
+            trainingDir.mkdirs();
+        }
+
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("HH.mm");
         String endTime = LocalDateTime.now().format(dateFormat);
 
-        trainer.exportTrainingData("training_data " + startTime + "_" + endTime + ".csv");
+        trainer.exportTrainingData("trainingData/training_data " + startTime + "_" + endTime + ".csv");
 
         System.out.println("\nSelf-play training complete!");
     }
@@ -51,9 +54,14 @@ public class TrainingCoordinator {
 
         evolver.evolve(5, 20);
 
+        java.io.File trainingDir = new java.io.File("trainingData/");
+        if (!trainingDir.exists()) {
+            trainingDir.mkdirs();
+        }
+
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("HH.mm");
         String endTime = LocalDateTime.now().format(dateFormat);
-        evolver.exportStats("evolution_stats " + startTime + "_" + endTime + ".csv");
+        evolver.exportStats("trainingData/evolution_stats " + startTime + "_" + endTime + ".csv");
 
         System.out.println("\nEvolutionary training complete!");
     }

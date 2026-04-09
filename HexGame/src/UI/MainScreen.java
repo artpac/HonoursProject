@@ -129,7 +129,7 @@ public class MainScreen extends JFrame {
             }});
 
         replayGame.addActionListener(e -> {
-            File selectGame = new File("/Users/artur/Documents/GitHub/HonoursProject/HexGame/SavedGames/");
+            File selectGame = new File("SavedGames/");
             JFileChooser fileChooser = new JFileChooser(selectGame);
             int returnVal = fileChooser.showOpenDialog(null);
             if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -145,8 +145,15 @@ public class MainScreen extends JFrame {
     public static File createSaveFile(String gameType) {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
         String formattedDateTime = LocalDateTime.now().format(dateFormat);
-        String saveGameFile = "/Users/artur/Documents/GitHub/HonoursProject/SavedGames/" + formattedDateTime + " - "+ gameType + " - Winner - WinnerColour.csv";
+
+        java.io.File modelsDir = new java.io.File("SavedGames/");
+        if (!modelsDir.exists()) {
+            modelsDir.mkdirs();
+        }
+        String saveGameFile = "SavedGames/" + formattedDateTime + " - "+ gameType + " - Winner - WinnerColour.csv";
         File saveGame = new File(saveGameFile);
+        
+        
         try {
             if (saveGame.createNewFile()) {
                 String testText = "Piece,X,Y\n";
