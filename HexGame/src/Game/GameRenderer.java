@@ -28,8 +28,6 @@ class GameRenderer {
     }
 
     private void drawHexGrid(Graphics2D g2) {
-        g2.setColor(new Color(0, 0, 0, 20));
-
         for (int q = -12; q <= 12; q++) {
             for (int r = -15; r <= 15; r++) {
                 HexCoord coord = new HexCoord(q, r);
@@ -38,11 +36,11 @@ class GameRenderer {
                 center.y += BOARD_CENTER_Y;
 
                 if (q == 0 && r == 0) {
-                    g2.setColor(new Color(255, 100, 100, 100));
+                    g2.setColor(new Color(0xff, 0x5b, 0x00, 60));
                     drawHexFilled(g2, center.x, center.y);
                 }
 
-                g2.setColor(new Color(0, 0, 0, 20));
+                g2.setColor(new Color(0xff, 0x5b, 0x00, 40));
                 drawHexOutline(g2, center.x, center.y);
             }
         }
@@ -66,7 +64,7 @@ class GameRenderer {
             boolean isSelected = selectedPiece == piece;
 
             if (isSelected) {
-                g2.setColor(new Color(255, 255, 150));
+                g2.setColor(new Color(0xff, 0xf9, 0x80));
                 g2.fillRoundRect(15, y - 25, 190, 50, 10, 10);
             }
 
@@ -98,7 +96,7 @@ class GameRenderer {
             }
 
             if (selectedCoord != null && selectedCoord.equals(coord)) {
-                g2.setColor(new Color(255, 255, 0, 150));
+                g2.setColor(new Color(0xff, 0xf9, 0x80, 200));
                 g2.setStroke(new BasicStroke(3));
                 drawHexOutline(g2, center.x, center.y);
                 g2.setStroke(new BasicStroke(1));
@@ -107,7 +105,10 @@ class GameRenderer {
     }
 
     private void drawValidMoves(Graphics2D g2, List<HexCoord> validMoves) {
-        g2.setColor(new Color(0, 255, 0, 100));
+        Color moveColor = gameState.getCurrentPlayer().equals(Color.WHITE)
+                ? new Color(0xd9, 0xca, 0x00, 160)   // yellow player movement
+                : new Color(0x99, 0x0d, 0x38, 160);  // red player movement
+        g2.setColor(moveColor);
         for (HexCoord coord : validMoves) {
             Point2D.Double center = coord.toPixel(HEX_SIZE);
             center.x += BOARD_CENTER_X;
@@ -120,21 +121,28 @@ class GameRenderer {
         drawPieceAt(g2, piece, p.x, p.y, HEX_SIZE);
     }
 
+    private static final Color YELLOW_TILE   = new Color(0xff, 0xf9, 0x80);
+    private static final Color RED_TILE      = new Color(0x44, 0x00, 0x15);
+    private static final Color FONT_COLOR    = new Color(0xff, 0x5b, 0x00);
+    private static final Color OUTLINE_COLOR = new Color(0xff, 0x5b, 0x00);
+
     private void drawPieceAt(Graphics2D g2, Piece piece, double cx, double cy, double size) {
-        // Draw hex shape
         Polygon hex = createHexagon(cx, cy, size);
 
-        g2.setColor(piece.getColor());
+        // Fill tile
+        Color tileColor = piece.getColor().equals(Color.WHITE) ? YELLOW_TILE : RED_TILE;
+        g2.setColor(tileColor);
         g2.fillPolygon(hex);
 
-        g2.setColor(Color.BLACK);
+        // Outline
+        g2.setColor(OUTLINE_COLOR);
         g2.setStroke(new BasicStroke(2));
         g2.drawPolygon(hex);
         g2.setStroke(new BasicStroke(1));
 
-        // Draw piece symbol
-        g2.setColor(piece.getColor().equals(Color.WHITE) ? Color.BLACK : Color.WHITE);
-        g2.setFont(new Font("Arial", Font.BOLD, 16));
+        // Piece symbol
+        g2.setColor(FONT_COLOR);
+        g2.setFont(new Font("Arial", Font.BOLD, 14));
         FontMetrics fm = g2.getFontMetrics();
         String text = piece.getType().getSymbol();
         int textWidth = fm.stringWidth(text);
@@ -144,7 +152,9 @@ class GameRenderer {
 
     private void drawHexOutline(Graphics2D g2, double cx, double cy) {
         Polygon hex = createHexagon(cx, cy, HEX_SIZE);
+        g2.setStroke(new BasicStroke(4));
         g2.drawPolygon(hex);
+        g2.setStroke(new BasicStroke(1));
     }
 
     private void drawHexFilled(Graphics2D g2, double cx, double cy) {

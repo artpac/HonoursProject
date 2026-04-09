@@ -34,7 +34,7 @@ public class GameBoard extends JPanel implements KeyListener{
     public GameBoard(File saveGame) {
         //Set Game Size and Colour
         setPreferredSize(new Dimension(1200, 700));
-        setBackground(new Color(240, 230, 210));
+        setBackground(new Color(0xea, 0x7d, 0x24));
 
         setFocusable(true);
         addKeyListener(this);
