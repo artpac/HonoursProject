@@ -40,7 +40,7 @@ class GameRenderer {
                     drawHexFilled(g2, center.x, center.y);
                 }
 
-                g2.setColor(new Color(0xff, 0x5b, 0x00, 40));
+                g2.setColor(new Color(0xff, 0x5b, 0x00, 64));
                 drawHexOutline(g2, center.x, center.y);
             }
         }
@@ -124,7 +124,7 @@ class GameRenderer {
     private static final Color YELLOW_TILE   = new Color(0xff, 0xf9, 0x80);
     private static final Color RED_TILE      = new Color(0x44, 0x00, 0x15);
     private static final Color FONT_COLOR    = new Color(0xff, 0x5b, 0x00);
-    private static final Color OUTLINE_COLOR = new Color(0xff, 0x5b, 0x00);
+    private static final Color OUTLINE_COLOR = new Color(255, 78, 0);
 
     private void drawPieceAt(Graphics2D g2, Piece piece, double cx, double cy, double size) {
         Polygon hex = createHexagon(cx, cy, size);
