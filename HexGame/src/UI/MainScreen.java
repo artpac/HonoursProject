@@ -18,7 +18,6 @@ import java.time.format.DateTimeFormatter;
 public class MainScreen extends JFrame {
     public MainScreen() {
 
-        //Initialising Screen
         JFrame frame = new JFrame();
 
         setTitle("Hive Board Game");
@@ -33,19 +32,17 @@ public class MainScreen extends JFrame {
         add(title, BorderLayout.NORTH);
 
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(3, 1, 10, 10));
+        buttonPanel.setLayout(new GridLayout(2, 1, 10, 10));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
 
         //Initialising Buttons
         JButton startGame = new JButton("Start Game");
         JButton replayGame = new JButton("Replay Game");
-        JButton trainAI = new JButton("Train AI");
         JButton rules = new JButton("Rules");
         JButton quit = new JButton("Quit");
 
         buttonPanel.add(startGame);
         buttonPanel.add(replayGame);
-        buttonPanel.add(trainAI);
         buttonPanel.add(rules);
         buttonPanel.add(quit);
 
@@ -98,21 +95,6 @@ public class MainScreen extends JFrame {
                 });
                 dispose();
             });
-
-        });
-
-        trainAI.addActionListener(e -> {
-            remove(title);
-            JLabel trainingTitle = new JLabel("Select Training Method", SwingConstants.CENTER);
-            trainingTitle.setFont(new Font("Arial", Font.BOLD, 22));
-            add(trainingTitle, BorderLayout.NORTH);
-
-            JPanel TrainingButtonPanel = new JPanel();
-            TrainingButtonPanel.setLayout(new GridLayout(1, 2, 10, 10));
-            TrainingButtonPanel.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
-
-            JButton selfPlay = new JButton("Player Vs Player");
-            JButton pvc = new JButton("Player Vs Computer");
 
         });
 

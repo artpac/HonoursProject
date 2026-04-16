@@ -13,7 +13,7 @@ public class TrainingCoordinator {
         String startTime = LocalDateTime.now().format(dateFormat);
         System.out.println(startTime);
 
-        String mode = args.length > 0 ? args[0] : "selfplay";
+        String mode = args.length > 0 ? args[0] : "evolution";
 
         switch (mode.toLowerCase()) {
             case "selfplay":
@@ -50,9 +50,9 @@ public class TrainingCoordinator {
     private static void runEvolutionaryTraining(String startTime) {
         System.out.println("Starting evolutionary training...\n");
 
-        EvolutionaryTrainer evolver = new EvolutionaryTrainer(5);
+        EvolutionaryTrainer evolver = new EvolutionaryTrainer(1);
 
-        evolver.evolve(5, 20);
+        evolver.evolve(1, 1);
 
         java.io.File trainingDir = new java.io.File("trainingData/");
         if (!trainingDir.exists()) {
