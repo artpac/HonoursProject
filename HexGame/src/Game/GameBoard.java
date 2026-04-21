@@ -246,8 +246,12 @@ public class GameBoard extends JPanel implements KeyListener{
 
     public static void placeReplayPiece(HexCoord coord, Piece piece, GameState gameState) {
         if (coord != null && piece != null && gameState != null) {
-            piece.setPosition(coord);
-            gameState.getBoard().placePiece(piece, coord);
+            HexCoord existingCoord = findPieceOnBoard(piece, gameState.getBoard());
+            if (existingCoord != null) {
+                gameState.getBoard().movePiece(existingCoord, coord);
+            } else {
+                gameState.getBoard().placePiece(piece, coord);
+            }
 
             if (piece.getType() == PieceType.QUEEN) {
                 gameState.setQueenPlaced(piece.getColor());
@@ -255,6 +259,19 @@ public class GameBoard extends JPanel implements KeyListener{
 
             gameState.nextPlayer();
         }
+    }
+
+    private static HexCoord findPieceOnBoard(Piece target, HiveBoard board) {
+        for (HexCoord c : board.getAllCoordinates()) {
+            for (Piece p : board.getStackAt(c)) {
+                if (p.getType() == target.getType()
+                        && p.getColor().equals(target.getColor())
+                        && p.getInstanceNumber() == target.getInstanceNumber()) {
+                    return c;
+                }
+            }
+        }
+        return null;
     }
 
     public void saveGame(HexCoord coord) {

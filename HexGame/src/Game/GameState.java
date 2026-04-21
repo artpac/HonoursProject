@@ -80,7 +80,12 @@ public class GameState {
     }
 
     public void removePieceFromReserve(Piece piece) {
-        reserves.get(currentPlayer).remove(piece);
+        List<Piece> reserve = reserves.get(piece.getColor());
+        if (reserve != null) {
+            reserve.removeIf(p -> p.getType() == piece.getType()
+                    && p.getColor().equals(piece.getColor())
+                    && p.getInstanceNumber() == piece.getInstanceNumber());
+        }
     }
 
     public GameState clone() {
