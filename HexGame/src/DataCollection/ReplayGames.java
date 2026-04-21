@@ -66,8 +66,7 @@ public class ReplayGames {
             // Place piece using the static method
             GameBoard.placeReplayPiece(coord, piece, gameState);
 
-            gameState.removePieceFromReserve( piece);
-            gameState.nextPlayer();
+            gameState.removePieceFromReserve(piece);
 
             // Force a repaint of the game board
             gameBoard.repaint();
